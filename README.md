@@ -1,5 +1,9 @@
 # rsclone-vk-server
 
+Link deploy: https://rs-clone-vk.onrender.com
+
+Link to repository: https://github.com/teumik/rsclone-vk-server
+
 # RS Clone VK API
 
 ## Routes
@@ -24,10 +28,10 @@
         ```ts
         interface IUserData {
           user: {
-              id: string | undefined;
-              email: string;
-              username: string;
-              isActivated: boolean | undefined;
+            id: string | undefined;
+            email: string;
+            username: string;
+            isActivated: boolean | undefined;
           };
           accessToken: string;
           refreshToken: string;
@@ -55,10 +59,10 @@
         ```ts
         interface IUserData {
           user: {
-              id: string | undefined;
-              email: string;
-              username: string;
-              isActivated: boolean | undefined;
+            id: string | undefined;
+            email: string;
+            username: string;
+            isActivated: boolean | undefined;
           };
           accessToken: string;
           refreshToken: string;
@@ -88,10 +92,10 @@
         ```ts
         interface IUserData {
           user: {
-              id: string | undefined;
-              email: string;
-              username: string;
-              isActivated: boolean | undefined;
+            id: string | undefined;
+            email: string;
+            username: string;
+            isActivated: boolean | undefined;
           };
           accessToken: string;
           refreshToken: string;
