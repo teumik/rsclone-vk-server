@@ -5,7 +5,6 @@ import dotenv from 'dotenv';
 import authValidate, { IUser } from '../utils/authValidate';
 import userService from '../service/user.service';
 import settings from '../utils/settings';
-import ApiError from '../utils/apiError';
 
 dotenv.config();
 const { env } = process;
