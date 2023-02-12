@@ -74,7 +74,7 @@ class UserService {
     const findedByUsername = await User.findOne({ username });
     const existUser = findedByEmail || findedByUsername;
     if (!existUser) {
-      throw ApiError.loginError({
+      throw ApiError.databaseError({
         code: 404,
         type: 'NotFound',
         message: `User ${email || username} not found`,
@@ -117,7 +117,7 @@ class UserService {
     if (!refreshToken) {
       throw ApiError.loginError({
         type: 'Unauthorized',
-        message: 'User unauthorized for logout',
+        message: 'User unauthorized',
       });
     }
     const payload = await tokenService.validateRefreshToken(refreshToken);
@@ -125,13 +125,13 @@ class UserService {
     if (!payload || !tokenData) {
       throw ApiError.loginError({
         type: 'Unauthorized',
-        message: 'User unauthorized for logout',
+        message: 'User unauthorized',
       });
     }
     const id = tokenData.user;
     const user = await User.findById({ _id: id });
     if (!user) {
-      throw ApiError.loginError({
+      throw ApiError.databaseError({
         code: 404,
         type: 'NotFound',
         message: 'User not found',
@@ -145,7 +145,7 @@ class UserService {
     if (!refreshToken) {
       throw ApiError.loginError({
         type: 'Unauthorized',
-        message: 'User unauthorized for logout',
+        message: 'User unauthorized',
       });
     }
     const payload = await tokenService.validateRefreshToken(refreshToken);
@@ -153,7 +153,7 @@ class UserService {
     if (!payload || !tokenData) {
       throw ApiError.loginError({
         type: 'Unauthorized',
-        message: 'User unauthorized for logout',
+        message: 'User unauthorized',
       });
     }
     const user = await User.findById({ _id: tokenData.user });
@@ -177,7 +177,8 @@ class UserService {
         message: 'Users not found',
       });
     }
-    return users;
+    const userData = users.map((user) => userDataDTO(user));
+    return userData;
   };
 }
 

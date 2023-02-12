@@ -3,8 +3,7 @@ import ApiError from '../utils/apiError';
 
 const connectDatabase = async (DB_URL?: string) => {
   if (!DB_URL) {
-    throw ApiError.databaseError({
-      code: 500,
+    throw ApiError.serverError({
       type: 'DBUrlError',
       message: 'Database URL cannot be empty string',
     });
@@ -16,7 +15,7 @@ const connectDatabase = async (DB_URL?: string) => {
     if (error instanceof Error) {
       throw ApiError.databaseError({
         code: 500,
-        type: 'DBUrlError',
+        type: 'DBConectionError',
         message: error.message,
       });
     }
