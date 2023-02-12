@@ -1,7 +1,5 @@
 # rsclone-vk-server
 
-Link deploy: https://rs-clone-vk.onrender.com
-
 Link to repository: https://github.com/teumik/rsclone-vk-server
 
 # RS Clone VK API
