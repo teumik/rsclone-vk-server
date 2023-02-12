@@ -58,7 +58,7 @@ class AuthController {
     try {
       const activationLink = req.params.link;
       const user = await userService.activation(activationLink);
-      res.redirect(`${SITE_URL}/user/${user.id}`);
+      res.redirect(`${SITE_URL}/auth/user/${user.id}`);
     } catch (error) {
       next(error);
     }
@@ -87,9 +87,8 @@ class AuthController {
       const refreshOptions = this.getRefreshOptions(0);
       res.cookie('refreshToken', '', refreshOptions);
       res.status(200).json({
-        status: true,
+        status: data.deletedCount === 1,
         type: 'Logout',
-        ...data,
       });
     } catch (error) {
       next(error);
