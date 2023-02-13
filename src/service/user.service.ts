@@ -7,7 +7,6 @@ import { IUser } from '../utils/authValidate';
 import mailService from './mail.service';
 import tokenService from './token.service';
 import userDataDTO from '../utils/userData.dto';
-import settings from '../utils/settings';
 import ApiError from '../utils/apiError';
 
 dotenv.config();
@@ -41,15 +40,12 @@ class UserService {
         message: `User with '${existUser.email ?? existUser.username}' exist`,
       });
     }
-
     const activationLink = uuidv4();
     const hashPassword = bcrypt.hashSync(password, 8);
     const user = await User.create({
       email, username, password: hashPassword, activationLink,
     });
-
     await mailService.sendActivationMail(email, `${SITE_URL}/auth/activate/${activationLink}`);
-
     const { tokens, userData } = await this.prepareData(user);
     return { ...tokens, user: userData };
   };
@@ -64,7 +60,7 @@ class UserService {
       });
     }
     user.isActivated = true;
-    user.activationLink = undefined;
+    // user.activationLink = undefined;
     await user.save();
     return user;
   };
@@ -72,33 +68,22 @@ class UserService {
   login = async ({ email, username, password }: IUser) => {
     const findedByEmail = await User.findOne({ email });
     const findedByUsername = await User.findOne({ username });
-    const existUser = findedByEmail || findedByUsername;
-    if (!existUser) {
+    const user = findedByEmail || findedByUsername;
+    if (!user) {
       throw ApiError.databaseError({
         code: 404,
         type: 'NotFound',
         message: `User ${email || username} not found`,
       });
     }
-
-    if (!existUser.isActivated && !settings.activationDisabled) {
-      throw ApiError.loginError({
-        code: 400,
-        type: 'Unconfirmed',
-        message: `User ${email || username} has not confirmed account`,
-      });
-    }
-
-    const isPasswordValide = await bcrypt.compare(password, existUser.password);
+    const isPasswordValide = await bcrypt.compare(password, user.password);
     if (!isPasswordValide) {
       throw ApiError.loginError({
         type: 'IncorrectPassword',
         message: `User '${email || username}', has not valid password`,
       });
     }
-
-    const { tokens, userData } = await this.prepareData(existUser);
-
+    const { tokens, userData } = await this.prepareData(user);
     return { ...tokens, user: userData };
   };
 
@@ -168,7 +153,7 @@ class UserService {
     return userData;
   };
 
-  getUsers = async () => {
+  getAllUsers = async () => {
     const users = await User.find();
     if (!users) {
       throw ApiError.databaseError({
