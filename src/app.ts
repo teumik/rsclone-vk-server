@@ -15,11 +15,11 @@ const { greetingMessage } = settings;
 
 const app = express();
 
-app.listen(PORT || 5555, async () => { await connectDatabase(DB_URL); });
-app.get('/', (req: Request, res: Response) => res.send(greetingMessage));
 app.use(express.json());
 app.use(cookieParser());
 app.use(corsMiddleware);
+app.listen(PORT || 5555, async () => { await connectDatabase(DB_URL); });
+app.get('/', (req: Request, res: Response) => res.send(greetingMessage));
 app.use('/auth', authRouter);
 app.use(errorMiddleware);
 app.use(loggerMiddleware);
