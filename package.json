@@ -3,7 +3,8 @@
   "scripts": {
     "init": "npm install",
     "build": "npx tsc",
-    "live": "npx tsc -w & nodemon dist/app"
+    "live": "npx tsc -w & nodemon dist/app",
+    "lint": "npx eslint --fix src/."
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
