@@ -4,20 +4,12 @@ import {
 import dotenv from 'dotenv';
 import authValidate, { IUser } from '../utils/authValidate';
 import userService from '../service/user.service';
-import settings from '../utils/settings';
 
 dotenv.config();
 const { env } = process;
 const { SITE_URL } = env;
 
 class AuthController {
-  private activationSwitcher = (req: Request) => {
-    const activation = req.header('Activation');
-    if (activation) {
-      settings.activationDisabled = activation !== 'true';
-    }
-  };
-
   private getRefreshOptions = (time: number): CookieOptions => ({
     maxAge: time,
     expires: time ? new Date(Date.now() + time) : new Date(1),
@@ -36,18 +28,16 @@ class AuthController {
   registration = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, username, password }: IUser = req.body;
-
       const validatorData = authValidate.validate({ email, username, password });
       if (!validatorData.status) {
         res.status(400).json(validatorData);
+        return;
       }
-
       const userData = await userService.registration({ email, username, password });
       const refreshOptions = this.getRefreshOptions(1000 * 60 * 60 * 24);
-
       res.status(201)
         .cookie('refreshToken', userData.refreshToken, refreshOptions)
-        .set(this.getTokensHeader(userData.refreshToken))
+        .set(this.getTokensHeader(userData.accessToken))
         .json(userData);
     } catch (error) {
       next(error);
@@ -56,9 +46,10 @@ class AuthController {
 
   activation = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const activationLink = req.params.link;
-      const user = await userService.activation(activationLink);
+      const { link } = req.params;
+      const user = await userService.activation(link);
       res.redirect(`${SITE_URL}/auth/user/${user.id}`);
+      res.json('Activation complete');
     } catch (error) {
       next(error);
     }
@@ -66,8 +57,6 @@ class AuthController {
 
   login = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      this.activationSwitcher(req);
-
       const { email, username, password } = req.body;
       const userData = await userService.login({ email, username, password });
       const refreshOptions = this.getRefreshOptions(1000 * 60 * 60 * 24);
@@ -121,7 +110,7 @@ class AuthController {
 
   getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const users = await userService.getUsers();
+      const users = await userService.getAllUsers();
       res.json(users);
     } catch (error) {
       next(error);
