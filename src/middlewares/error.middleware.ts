@@ -5,9 +5,10 @@ function errorMiddleware(err: Error, req: Request, res: Response, next: NextFunc
   if (err instanceof ApiError) {
     res.status(err.code).json({
       ...err,
+      message: err.message,
       handled: 'error.middleware',
     });
-    return next();
+    return;
   }
   if (err instanceof Error) {
     res.status(418).json({
@@ -15,9 +16,9 @@ function errorMiddleware(err: Error, req: Request, res: Response, next: NextFunc
       message: `Not handeled in custom Error: ${err.message}`,
       handled: 'error.middleware',
     });
-    return next();
+    return;
   }
-  return next();
+  next();
 }
 
 export default errorMiddleware;
