@@ -20,20 +20,17 @@ class AuthValidate {
     };
   }
 
-  private setInvalid(type: string, message: string) {
+  private setInvalid(message: string) {
     return {
       status: false,
-      type,
+      type: 'Denied',
       message,
     };
   }
 
   private isValid(data: IUser) {
     if (!data.username || !data.password) {
-      return {
-        status: false,
-        type: 'Denied',
-      };
+      return this.setInvalid('Field cannot be empty');
     }
     return this.setValid();
   }
@@ -41,7 +38,7 @@ class AuthValidate {
   private isEmpty(data: IUser) {
     const { username, password } = data;
     if (username === '' || password === '') {
-      return this.setInvalid('Denied', 'Field cannot be empty');
+      return this.setInvalid('Field cannot be empty');
     }
     return this.setValid();
   }
@@ -50,7 +47,7 @@ class AuthValidate {
     const { username } = data;
     const minLength = 5;
     if (username.length < minLength) {
-      return this.setInvalid('Denied', `Username less than ${minLength}`);
+      return this.setInvalid(`Username less than ${minLength}`);
     }
     return this.setValid();
   }
@@ -59,7 +56,7 @@ class AuthValidate {
     const { password } = data;
     const minLength = 7;
     if (password.length < minLength) {
-      return this.setInvalid('Denied', `Password less than ${minLength}`);
+      return this.setInvalid(`Password less than ${minLength}`);
     }
     return this.setValid();
   }
