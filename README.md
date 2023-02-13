@@ -114,16 +114,16 @@ Link to repository: https://github.com/teumik/rsclone-vk-server
 
         **Method**: ```GET```
 
-        **Body:**
+        **Request:**
 
         ```ts
-        type TLogin = {
-          email: string;
-          password: string;
-        } | {
-          username: string;
-          password: string;
-        };
+        const fetchOptions: RequestInit = {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+            credentials: 'include',
+          },
+        }
         ```
 
         **Response:**
@@ -147,9 +147,11 @@ Link to repository: https://github.com/teumik/rsclone-vk-server
         **Request:**
 
         ```ts
-        const fetchOptions = {
+        const fetchOptions: RequestInit = {
           headers: {
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`,
+            credentials: 'include',
           },
         }
         ```
