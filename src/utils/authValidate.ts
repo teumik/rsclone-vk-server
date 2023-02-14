@@ -2,6 +2,8 @@ export interface IUser {
   email: string;
   username: string;
   password: string;
+  firstName: string;
+  lastName: string;
 }
 
 interface IValidateResponce {
@@ -36,8 +38,19 @@ class AuthValidate {
   }
 
   private isEmpty(data: IUser) {
-    const { username, password } = data;
-    if (username === '' || password === '') {
+    const {
+      username, password, firstName, lastName,
+    } = data;
+    if (!username) {
+      return this.setInvalid('Field cannot be empty');
+    }
+    if (!password) {
+      return this.setInvalid('Field cannot be empty');
+    }
+    if (!firstName) {
+      return this.setInvalid('Field cannot be empty');
+    }
+    if (!lastName) {
       return this.setInvalid('Field cannot be empty');
     }
     return this.setValid();
