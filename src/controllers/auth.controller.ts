@@ -1,12 +1,12 @@
+import { env } from 'process';
 import {
   CookieOptions, NextFunction, Request, Response
 } from 'express';
 import dotenv from 'dotenv';
 import authValidate, { IUser } from '../utils/authValidate';
-import userService from '../service/user.service';
+import authService from '../service/auth.service';
 
 dotenv.config();
-const { env } = process;
 const { SITE_URL } = env;
 
 class AuthController {
@@ -27,13 +27,19 @@ class AuthController {
 
   registration = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { email, username, password }: IUser = req.body;
-      const validatorData = authValidate.validate({ email, username, password });
+      const {
+        email, username, password, firstName, lastName,
+      }: IUser = req.body;
+      const validatorData = authValidate.validate({
+        email, username, password, firstName, lastName,
+      });
       if (!validatorData.status) {
         res.status(400).json(validatorData);
         return;
       }
-      const userData = await userService.registration({ email, username, password });
+      const userData = await authService.registration({
+        email, username, password, firstName, lastName,
+      });
       const refreshOptions = this.getRefreshOptions(1000 * 60 * 60 * 24);
       res.status(201)
         .cookie('refreshToken', userData.refreshToken, refreshOptions)
@@ -47,7 +53,7 @@ class AuthController {
   activation = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { link } = req.params;
-      const user = await userService.activation(link);
+      const user = await authService.activation(link);
       res.redirect(`${SITE_URL}/auth/user/${user.id}`);
       res.json('Activation complete');
     } catch (error) {
@@ -58,7 +64,7 @@ class AuthController {
   login = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, username, password } = req.body;
-      const userData = await userService.login({ email, username, password });
+      const userData = await authService.login({ email, username, password });
       const refreshOptions = this.getRefreshOptions(1000 * 60 * 60 * 24);
       res.status(201)
         .cookie('refreshToken', userData.refreshToken, refreshOptions)
@@ -72,7 +78,7 @@ class AuthController {
   logout = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { refreshToken } = req.cookies;
-      const data = await userService.logout(refreshToken);
+      const data = await authService.logout(refreshToken);
       const refreshOptions = this.getRefreshOptions(0);
       res.cookie('refreshToken', '', refreshOptions);
       res.status(200).json({
@@ -87,7 +93,7 @@ class AuthController {
   refresh = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { refreshToken } = req.cookies;
-      const userData = await userService.refresh(refreshToken);
+      const userData = await authService.refresh(refreshToken);
       const refreshOptions = this.getRefreshOptions(1000 * 60 * 60 * 24);
       res.status(201)
         .cookie('refreshToken', userData.refreshToken, refreshOptions)
@@ -101,7 +107,7 @@ class AuthController {
   getUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { refreshToken } = req.cookies;
-      const user = await userService.getUser(refreshToken);
+      const user = await authService.getUser(refreshToken);
       res.json(user);
     } catch (error) {
       next(error);
@@ -110,7 +116,7 @@ class AuthController {
 
   getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const users = await userService.getAllUsers();
+      const users = await authService.getAllUsers();
       res.json(users);
     } catch (error) {
       next(error);
