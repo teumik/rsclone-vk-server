@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongoose';
 import dotenv from 'dotenv';
 import Token from '../models/token.model';
-import { IUserModel } from './user.service';
+import { IUserModel } from './auth.service';
 import ApiError from '../utils/apiError';
 
 dotenv.config();
@@ -21,10 +21,7 @@ class TokenService {
     }
     const accessToken = jwt.sign(payload, SECRET_ACCESS, { expiresIn: '5m' });
     const refreshToken = jwt.sign(payload, SECRET_REFRESH, { expiresIn: '10m' });
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return { accessToken, refreshToken };
   };
 
   validateAccessToken = async (token: string) => {
@@ -55,7 +52,8 @@ class TokenService {
     const tokenData = await Token.findOne({ user });
     if (tokenData) {
       tokenData.refreshToken = refreshToken;
-      return tokenData.save();
+      const token = await tokenData.save();
+      return token;
     }
     const token = await Token.create({ user, refreshToken });
     return token;
