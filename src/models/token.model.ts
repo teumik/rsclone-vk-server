@@ -1,7 +1,7 @@
 import { Schema, model } from 'mongoose';
 
 const tokenSchema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: 'User' },
+  user: { type: Schema.Types.ObjectId, require: true, ref: 'User' },
   refreshToken: { type: String, require: true },
 });
 
