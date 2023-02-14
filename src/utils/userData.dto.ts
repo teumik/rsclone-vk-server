@@ -1,10 +1,11 @@
-import { IUserModel } from '../service/user.service';
+import { IUserModel } from '../service/auth.service';
 
-const userDataDTO = (user: IUserModel) => ({
-  id: user.id,
-  email: user.email,
-  username: user.username,
-  isActivated: user.isActivated,
-});
+class UserDto {
+  static getData = ({
+    id, email, username, isActivated,
+  }: IUserModel) => ({
+    id, email, username, isActivated,
+  });
+}
 
-export default userDataDTO;
+export default UserDto;
