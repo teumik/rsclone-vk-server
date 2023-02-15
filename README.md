@@ -40,6 +40,7 @@ Link to server: https://rs-clone-vk.onrender.com
         }
         ```
 
+        **Options:**
 
         ``` ts
         method: 'POST',
