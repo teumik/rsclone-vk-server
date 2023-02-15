@@ -28,6 +28,16 @@ class UserController {
     }
   };
 
+  getReciveCount = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { refreshToken } = req.cookies;
+      const count = await userService.getRequestCount(refreshToken);
+      res.json(count);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   addFriend = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { friendId, username } = req.body;

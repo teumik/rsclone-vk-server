@@ -7,12 +7,12 @@ import Friends from '../models/friends.model';
 
 dotenv.config();
 
-interface IFriend {
+interface IUserData {
   friendId: Schema.Types.ObjectId;
   username: string;
 }
 
-interface IFriendship extends IFriend {
+interface IUserAuthData extends IUserData {
   refreshToken: string;
 }
 
@@ -22,7 +22,7 @@ interface IFriendsValidate {
 }
 
 class UserService {
-  private findFriend = async ({ friendId, username }: IFriend) => {
+  private findFriend = async ({ friendId, username }: IUserData) => {
     if (friendId) {
       const friendById = await User.findById({ _id: friendId });
       return friendById;
@@ -46,7 +46,7 @@ class UserService {
     return user;
   };
 
-  private findUsers = async ({ friendId, username, refreshToken }: IFriendship) => {
+  private findUsers = async ({ friendId, username, refreshToken }: IUserAuthData) => {
     const user = await this.findCurrentUser(refreshToken);
     const friend = await this.findFriend({ friendId, username });
     if (!friend) {
@@ -76,7 +76,12 @@ class UserService {
     return { count: user.pendingRequest.length };
   };
 
-  addFriend = async ({ friendId, username, refreshToken }: IFriendship) => {
+  getReciveCount = async (refreshToken: string) => {
+    const user = await this.findCurrentUser(refreshToken);
+    return { count: user.outgoingRequest.length };
+  };
+
+  addFriend = async ({ friendId, username, refreshToken }: IUserAuthData) => {
     const { user, friend } = await this.findUsers({ friendId, username, refreshToken });
     const existRequest = this.hasExistRequest({ userId: user.id, friendId: friend.id });
     if (!existRequest) {
@@ -97,7 +102,7 @@ class UserService {
     return { user, friend };
   };
 
-  acceptFriend = async ({ friendId, username, refreshToken }: IFriendship) => {
+  acceptFriend = async ({ friendId, username, refreshToken }: IUserAuthData) => {
     const { user, friend } = await this.findUsers({ friendId, username, refreshToken });
     const existRequest = await this.hasExistRequest({ userId: user.id, friendId: friend.id });
     if (!existRequest) {
