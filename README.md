@@ -2,6 +2,8 @@
 
 Link to repository: https://github.com/teumik/rsclone-vk-server
 
+Link to server: https://rs-clone-vk.onrender.com
+
 # RS Clone VK API
 
 ## Routes
@@ -18,6 +20,8 @@ Link to repository: https://github.com/teumik/rsclone-vk-server
           email: string;
           username: string;
           password: string;
+          firstName: string;
+          lastName: string;
         }
         ```
 
@@ -34,6 +38,17 @@ Link to repository: https://github.com/teumik/rsclone-vk-server
           accessToken: string;
           refreshToken: string;
         }
+        ```
+
+
+        ``` ts
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        credentials: 'include',
+        body: JSON.stringify(user),
         ```
 
     - ### ```/login```
@@ -121,8 +136,8 @@ Link to repository: https://github.com/teumik/rsclone-vk-server
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`,
-            credentials: 'include',
           },
+          credentials: 'include',
         }
         ```
 
