@@ -10,7 +10,7 @@ const infoSchema = new Schema({
   lastName: { type: String, required: true },
   status: { type: String },
   familyStatus: { type: String },
-  originCity: { type: String },
+  hometown: { type: String },
   school: { type: String },
   university: { type: String },
   interests: { type: String },
@@ -18,7 +18,7 @@ const infoSchema = new Schema({
   favoriteMusic: { type: String },
   favoriteBooks: { type: String },
   favoriteFilms: { type: String },
-  birthDate: { type: Date },
+  birthDate: { type: Number },
 });
 
 const Info = model('Info', infoSchema);
