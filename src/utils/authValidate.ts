@@ -39,19 +39,22 @@ class AuthValidate {
 
   private isEmpty(data: IUser) {
     const {
-      username, password, firstName, lastName,
+      username, password, firstName, lastName, email,
     } = data;
     if (!username) {
-      return this.setInvalid('Field cannot be empty');
+      return this.setInvalid('Username cannot be empty');
     }
     if (!password) {
-      return this.setInvalid('Field cannot be empty');
+      return this.setInvalid('Password cannot be empty');
     }
     if (!firstName) {
-      return this.setInvalid('Field cannot be empty');
+      return this.setInvalid('FirstName cannot be empty');
     }
     if (!lastName) {
-      return this.setInvalid('Field cannot be empty');
+      return this.setInvalid('LastName cannot be empty');
+    }
+    if (!email) {
+      return this.setInvalid('Email cannot be empty');
     }
     return this.setValid();
   }
