@@ -12,6 +12,7 @@ interface IData {
   icon: string;
   firstName: string;
   lastName: string;
+  fullName: string;
   status: string;
   familyStatus: string;
   hometown: string;
@@ -81,7 +82,7 @@ class InfoService {
   );
 
   private findByToken = async (refreshToken: string) => {
-    const tokenData = await tokenService.findToken(refreshToken);
+    const tokenData = await tokenService.findRefreshToken(refreshToken);
     if (!tokenData) {
       throw new Error('Tokent not found "findByToken"');
     }
@@ -120,11 +121,16 @@ class InfoService {
     if (!info) {
       throw new Error('Info field not found "sendInfo"');
     }
-    const infoById = await Info.findOne({ _id: info?.id });
+    const infoById = await Info.findOne({ _id: info.id });
     if (!infoById) {
       throw new Error('Info document not found "sendInfo"');
     }
-    Object.assign(infoById, validInfoData);
+    console.log(infoData);
+
+    Object.assign(infoById, {
+      ...validInfoData,
+      fullName: `${validInfoData.firstName} ${validInfoData.lastName}`,
+    });
     await infoById.save();
     return infoById;
   };
