@@ -8,5 +8,7 @@ router.post('/accept', userController.acceptFriend);
 router.get('/incount', userController.getRequestCount);
 router.get('/outcount', userController.getReciveCount);
 router.get('/friends', userController.getFriends);
+router.get('/id/:id', userController.getUser);
+router.get('/all', userController.getAllUsers);
 
 export default router;
