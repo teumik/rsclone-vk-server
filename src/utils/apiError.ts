@@ -79,6 +79,42 @@ class ApiError extends Error {
       name: 'DatabaseError',
     });
   }
+
+  static friendError({
+    status, code, message, type,
+  }: IApiError) {
+    return new ApiError({
+      status,
+      code: code || 403,
+      type,
+      message,
+      name: 'FriendError',
+    });
+  }
+
+  static searchError({
+    status, code, message, type,
+  }: IApiError) {
+    return new ApiError({
+      status,
+      code: code || 403,
+      type,
+      message,
+      name: 'SearchError',
+    });
+  }
+
+  static infoError({
+    status, code, message, type,
+  }: IApiError) {
+    return new ApiError({
+      status,
+      code: code || 403,
+      type,
+      message,
+      name: 'InfoError',
+    });
+  }
 }
 
 export default ApiError;
