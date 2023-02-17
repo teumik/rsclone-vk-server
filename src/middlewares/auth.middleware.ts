@@ -5,36 +5,75 @@ import User from '../models/user.model';
 
 const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const error = ApiError.loginError({
+    const error = (message: string) => ApiError.loginError({
       type: 'Unauthorized',
-      message: 'Token does not exist, user unauthorized',
+      message,
     });
 
-    const { authorization } = req.headers;
-    const { refreshToken } = req.cookies;
-
-    if (!authorization && !refreshToken) {
-      throw error;
-    }
-
-    if (authorization) {
-      const accessToken = authorization?.split(' ')[1];
-      if (!accessToken) {
-        throw error;
+    const { email, username } = req.body;
+    if (email || username) {
+      const findedByEmail = await User.findOne({ email });
+      const findedByUsername = await User.findOne({ username });
+      const user = findedByEmail || findedByUsername;
+      if (!user) {
+        throw ApiError.databaseError({
+          code: 404,
+          type: 'NotFound',
+          message: `User ${email || username} not found`,
+        });
       }
-      const userData = await tokenService.validateAccessToken(accessToken);
-      if (!userData) {
-        throw error;
+      if (!user.isActivated) {
+        throw ApiError.loginError({
+          code: 400,
+          type: 'Unconfirmed',
+          message: `User ${email || username} has not confirmed account`,
+        });
       }
       next();
       return;
     }
 
+    const { authorization } = req.headers;
+    const accessToken = authorization?.split(' ')[1];
+    if (!accessToken) {
+      throw error('Access token not provided');
+    }
+    if (accessToken !== 'undefined') {
+      const payload = await tokenService.validateAccessToken(accessToken);
+      if (!payload) {
+        throw error('Access token not valid');
+      }
+      if (typeof payload === 'string') {
+        throw error('Access token not valid');
+      }
+      const user = await User.findById({ _id: payload.id });
+      if (!user) {
+        throw ApiError.databaseError({
+          code: 404,
+          type: 'NotFound',
+          message: 'User not found',
+        });
+      }
+      if (!user.isActivated) {
+        throw ApiError.loginError({
+          code: 400,
+          type: 'Unconfirmed',
+          message: 'User has not confirmed account',
+        });
+      }
+      next();
+      return;
+    }
+
+    const { refreshToken } = req.cookies;
     if (refreshToken) {
       const payload = await tokenService.validateRefreshToken(refreshToken);
-      const tokenData = await tokenService.findToken(refreshToken);
-      if (!payload || !tokenData) {
-        throw error;
+      const tokenData = await tokenService.findRefreshToken(refreshToken);
+      if (!tokenData) {
+        throw error('Refresh token does not exist');
+      }
+      if (!payload) {
+        throw error('Refresh token not valid');
       }
       const user = await User.findById({ _id: tokenData.user });
       if (!user) {
@@ -52,7 +91,6 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
         });
       }
     }
-
     next();
   } catch (error) {
     next(error);
