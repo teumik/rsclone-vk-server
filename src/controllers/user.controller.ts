@@ -38,6 +38,17 @@ class UserController {
     }
   };
 
+  removeFriends = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { friendId, username } = req.body;
+      const { refreshToken } = req.cookies;
+      const response = await userService.removeFriends({ friendId, username, refreshToken });
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   addFriend = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { friendId, username } = req.body;

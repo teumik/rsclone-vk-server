@@ -5,7 +5,6 @@ import User from '../models/user.model';
 import tokenService from './token.service';
 import Friends from '../models/friends.model';
 import ApiError from '../utils/apiError';
-import UserDto from '../utils/userData.dto';
 
 dotenv.config();
 
@@ -39,11 +38,19 @@ class UserService {
   private findCurrentUser = async (refreshToken: string) => {
     const tokenData = await tokenService.findRefreshToken(refreshToken);
     if (!tokenData) {
-      throw new Error('Tokent not found "findUsers"');
+      throw ApiError.loginError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Token not found',
+      });
     }
     const user = await User.findById({ _id: tokenData.user });
     if (!user) {
-      throw new Error('User not found "findUsers"');
+      throw ApiError.friendError({
+        code: 404,
+        type: 'NotFound',
+        message: 'User not found',
+      });
     }
     return user;
   };
@@ -51,8 +58,25 @@ class UserService {
   private findUsers = async ({ friendId, username, refreshToken }: IUserAuthData) => {
     const user = await this.findCurrentUser(refreshToken);
     const friend = await this.findFriend({ friendId, username });
+    if (!user) {
+      throw ApiError.friendError({
+        code: 404,
+        type: 'NotFound',
+        message: 'User not found',
+      });
+    }
     if (!friend) {
-      throw new Error('Friend not found "findUsers"');
+      throw ApiError.friendError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Friend not found',
+      });
+    }
+    if (user.id === friend.id) {
+      throw ApiError.friendError({
+        type: 'SelfAdd',
+        message: 'Do not play with yourself',
+      });
     }
     return { user, friend };
   };
@@ -83,24 +107,47 @@ class UserService {
     return { count: user.outgoingRequest.length };
   };
 
-  addFriend = async ({ friendId, username, refreshToken }: IUserAuthData) => {
+  removeFriends = async ({ friendId, username, refreshToken }: IUserAuthData) => {
     const { user, friend } = await this.findUsers({ friendId, username, refreshToken });
-    const existRequest = this.hasExistRequest({ userId: user.id, friendId: friend.id });
+    const existRequest = await this.hasExistRequest({ userId: user.id, friendId: friend.id });
     if (!existRequest) {
-      throw new Error('Request exist "addFriend"');
+      throw ApiError.friendError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Request does not exist',
+      });
     }
 
+    user.outgoingRequest = user.outgoingRequest.filter((el) => (
+      el.toHexString() !== existRequest.id
+    ));
+    friend.pendingRequest = friend.pendingRequest.filter((el) => (
+      el.toHexString() !== existRequest.id
+    ));
+
+    await existRequest.remove();
+    await friend.save();
+    await user.save();
+    return { status: true, type: 'Remove friend request' };
+  };
+
+  addFriend = async ({ friendId, username, refreshToken }: IUserAuthData) => {
+    const { user, friend } = await this.findUsers({ friendId, username, refreshToken });
+    const existRequest = await this.hasExistRequest({ userId: user.id, friendId: friend.id });
+    if (existRequest) {
+      throw ApiError.friendError({
+        type: 'Duplicate',
+        message: 'Request exist',
+      });
+    }
     const friendData = await Friends.create({
       requester: user.id,
       recipient: friend.id,
     });
-
     user.outgoingRequest.push(friendData.id);
     friend.pendingRequest.push(friendData.id);
-
     await user.save();
     await friend.save();
-
     return { user, friend };
   };
 
@@ -108,13 +155,19 @@ class UserService {
     const { user, friend } = await this.findUsers({ friendId, username, refreshToken });
     const existRequest = await this.hasExistRequest({ userId: user.id, friendId: friend.id });
     if (!existRequest) {
-      throw new Error('Request does not exist "acceptFriend"');
+      throw ApiError.friendError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Request does not exist',
+      });
     }
     const existFriends = user.friends.find((el) => el.friendId?.toString() === friend.id);
     if (existFriends) {
-      throw new Error('Friend exist in user "acceptFriend"');
+      throw ApiError.friendError({
+        type: 'Duplicate',
+        message: 'Friend exist in user',
+      });
     }
-
     existRequest.status = true;
     user.pendingRequest = user.pendingRequest.filter((el) => el.id.toString('hex') !== existRequest.id);
     friend.outgoingRequest = friend.outgoingRequest.filter((el) => el.id.toString('hex') !== existRequest.id);
@@ -126,11 +179,9 @@ class UserService {
       friendDocument: existRequest.id,
       friendId: existRequest.recipient,
     });
-
     await friend.save();
     await user.save();
     await existRequest.save();
-
     return existRequest;
   };
 

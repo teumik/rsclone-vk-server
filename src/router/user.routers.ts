@@ -5,6 +5,7 @@ const router = Router();
 
 router.post('/add', userController.addFriend);
 router.post('/accept', userController.acceptFriend);
+router.post('/remove', userController.removeFriends);
 router.get('/incount', userController.getRequestCount);
 router.get('/outcount', userController.getReciveCount);
 router.get('/friends', userController.getFriends);
