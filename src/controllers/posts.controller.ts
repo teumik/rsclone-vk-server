@@ -1,6 +1,7 @@
 import { env } from 'process';
 import { NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
+import postsService from '../service/posts.service';
 
 dotenv.config();
 
@@ -8,7 +9,9 @@ class PostsController {
   addPost = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { refreshToken } = req.cookies;
-      res.json();
+      console.log('addPost', 'addPost');
+      const post = await postsService.addPost();
+      res.json({});
     } catch (error) {
       next(error);
     }
@@ -18,7 +21,9 @@ class PostsController {
     try {
       const { refreshToken } = req.cookies;
       const { postId } = req.params;
-      res.json();
+      console.log(postId, 'editPost');
+      const post = await postsService.editPost();
+      res.json({});
     } catch (error) {
       next(error);
     }
@@ -28,7 +33,9 @@ class PostsController {
     try {
       const { refreshToken } = req.cookies;
       const { postId } = req.params;
-      res.json();
+      console.log(postId, 'getPost');
+      const post = await postsService.getPost();
+      res.json({});
     } catch (error) {
       next(error);
     }
@@ -37,7 +44,9 @@ class PostsController {
   getAllPost = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { refreshToken } = req.cookies;
-      res.json();
+      console.log('getAllPost', 'getAllPost');
+      // const post = await postsService.getAllPost();
+      res.json({});
     } catch (error) {
       next(error);
     }
