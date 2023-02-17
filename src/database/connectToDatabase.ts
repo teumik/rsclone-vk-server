@@ -27,11 +27,12 @@ class DatabaseController {
   dropAllCollections = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { db } = mongoose.connection;
+
       const collections = await db.listCollections().toArray();
       collections.map(async (collection) => {
         await db.dropCollection(collection.name);
       });
-      res.status(200).json('Clear');
+      res.status(200).json({ status: 'Clear' });
     } catch (error) {
       next(error);
     }
