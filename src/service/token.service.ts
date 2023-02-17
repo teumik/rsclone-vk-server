@@ -20,7 +20,7 @@ class TokenService {
       throw ApiError.serverError({ message: 'Server not found secret keys' });
     }
     const accessToken = jwt.sign(payload, SECRET_ACCESS, { expiresIn: '4m' });
-    const refreshToken = jwt.sign(payload, SECRET_REFRESH, { expiresIn: '20m' });
+    const refreshToken = jwt.sign(payload, SECRET_REFRESH, { expiresIn: '24h' });
     return { accessToken, refreshToken };
   };
 
