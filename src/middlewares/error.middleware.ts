@@ -18,7 +18,7 @@ function errorMiddleware(err: Error, req: Request, res: Response, next: NextFunc
     });
     return;
   }
-  next();
+  res.json(err);
 }
 
 export default errorMiddleware;
