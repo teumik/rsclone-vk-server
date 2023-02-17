@@ -90,6 +90,8 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
           message: 'User has not confirmed account',
         });
       }
+      next();
+      return;
     }
     next();
   } catch (error) {
