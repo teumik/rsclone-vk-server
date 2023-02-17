@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import User from '../models/user.model';
 import Info from '../models/info.model';
 import { IUser } from '../utils/authValidate';
+import ApiError from '../utils/apiError';
 
 dotenv.config();
 
@@ -65,7 +66,10 @@ class SearchService {
   searchUsers = async (value: string) => {
     if (value === '') return [];
     if (typeof value !== 'string') {
-      throw new Error('Query must be string');
+      throw ApiError.searchError({
+        type: 'IncorrectType',
+        message: 'Query must be string',
+      });
     }
     const users = await this.findUsers(value);
     return users;

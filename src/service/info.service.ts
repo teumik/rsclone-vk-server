@@ -4,6 +4,7 @@ import { Schema } from 'mongoose';
 import tokenService from './token.service';
 import User from '../models/user.model';
 import Info from '../models/info.model';
+import ApiError from '../utils/apiError';
 
 dotenv.config();
 
@@ -84,11 +85,19 @@ class InfoService {
   private findByToken = async (refreshToken: string) => {
     const tokenData = await tokenService.findRefreshToken(refreshToken);
     if (!tokenData) {
-      throw new Error('Tokent not found "findByToken"');
+      throw ApiError.loginError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Token not found',
+      });
     }
     const user = await User.findById({ _id: tokenData.user });
     if (!user) {
-      throw new Error('User not found "findByToken"');
+      throw ApiError.loginError({
+        code: 404,
+        type: 'NotFound',
+        message: 'User not found',
+      });
     }
     return user;
   };
@@ -115,17 +124,28 @@ class InfoService {
     const user = await this.findUser({ refreshToken, userId, username });
     const validInfoData = this.removeFalseFields(infoData);
     if (!user) {
-      throw new Error('User not found "sendInfo"');
+      throw ApiError.loginError({
+        code: 404,
+        type: 'NotFound',
+        message: 'User not found',
+      });
     }
     const { info } = await user.populate('info');
     if (!info) {
-      throw new Error('Info field not found "sendInfo"');
+      throw ApiError.infoError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Info field not found',
+      });
     }
     const infoById = await Info.findOne({ _id: info.id });
     if (!infoById) {
-      throw new Error('Info document not found "sendInfo"');
+      throw ApiError.databaseError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Info not found',
+      });
     }
-    console.log(infoData);
 
     Object.assign(infoById, {
       ...validInfoData,
