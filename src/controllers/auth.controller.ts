@@ -40,11 +40,12 @@ class AuthController {
       const userData = await authService.registration({
         email, username, password, firstName, lastName,
       });
+      const { accessToken, userData: user } = userData;
       const refreshOptions = this.getRefreshOptions(1000 * 60 * 60 * 24);
       res.status(201)
         .cookie('refreshToken', userData.refreshToken, refreshOptions)
         .set(this.getTokensHeader(userData.accessToken))
-        .json(userData);
+        .json({ accessToken, user });
     } catch (error) {
       next(error);
     }
@@ -53,9 +54,9 @@ class AuthController {
   activation = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { link } = req.params;
-      const user = await authService.activation(link);
-      res.redirect(`${SITE_URL}/auth/user/${user.id}`);
-      res.json('Activation complete');
+      const userData = await authService.activation(link);
+      // res.redirect(`${SITE_URL}/user/${user.id}`);
+      res.json({ status: 'Activation complete', userData });
     } catch (error) {
       next(error);
     }
@@ -66,10 +67,11 @@ class AuthController {
       const { email, username, password } = req.body;
       const userData = await authService.login({ email, username, password });
       const refreshOptions = this.getRefreshOptions(1000 * 60 * 60 * 24);
+      const { accessToken, userData: user } = userData;
       res.status(201)
         .cookie('refreshToken', userData.refreshToken, refreshOptions)
         .set(this.getTokensHeader(userData.accessToken))
-        .json(userData);
+        .json({ accessToken, user });
     } catch (error) {
       next(error);
     }
@@ -94,30 +96,12 @@ class AuthController {
     try {
       const { refreshToken } = req.cookies;
       const userData = await authService.refresh(refreshToken);
+      const { accessToken, userData: user } = userData;
       const refreshOptions = this.getRefreshOptions(1000 * 60 * 60 * 24);
       res.status(201)
         .cookie('refreshToken', userData.refreshToken, refreshOptions)
         .set(this.getTokensHeader(userData.accessToken))
-        .json(userData);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  getUser = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { refreshToken } = req.cookies;
-      const user = await authService.getUser(refreshToken);
-      res.json(user);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const users = await authService.getAllUsers();
-      res.json(users);
+        .json({ accessToken, user });
     } catch (error) {
       next(error);
     }

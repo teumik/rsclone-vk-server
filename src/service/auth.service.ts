@@ -16,10 +16,10 @@ const { SITE_URL } = env;
 
 export interface IUserModel {
   id?: ObjectId;
-  email: string;
+  email?: string;
   username: string;
-  roles?: string[];
   isActivated?: boolean;
+  isOnline?: boolean;
 }
 
 export interface ILogin {
@@ -31,7 +31,7 @@ export interface ILogin {
 class AuthService {
   private prepareData = async (user: IUserModel) => {
     const userData = UserDto.getData(user);
-    const tokens = tokenService.generateToken({ ...userData });
+    const tokens = tokenService.generateToken(userData);
     await tokenService.saveToken({ user: userData.id, refreshToken: tokens.refreshToken });
     return { tokens, userData };
   };
@@ -51,7 +51,9 @@ class AuthService {
     }
     const activationLink = uuidv4();
     const hashPassword = bcrypt.hashSync(password, 8);
-    const info = new Info({ user: undefined, firstName, lastName });
+    const info = new Info({
+      user: undefined, firstName, lastName, fullName: `${firstName} ${lastName}`,
+    });
     const user = await User.create({
       email, username, password: hashPassword, activationLink, info,
     });
@@ -59,7 +61,7 @@ class AuthService {
     await info.save();
     await mailService.sendActivationMail(email, `${SITE_URL}/auth/activate/${activationLink}`);
     const { tokens, userData } = await this.prepareData(user);
-    return { ...tokens, user };
+    return { ...tokens, userData };
   };
 
   activation = async (activationLink: string) => {
@@ -74,7 +76,8 @@ class AuthService {
     user.isActivated = true;
     user.activationLink = undefined;
     await user.save();
-    return user;
+    const userData = UserDto.getData(user);
+    return userData;
   };
 
   login = async ({ email, username, password }: ILogin) => {
@@ -96,7 +99,7 @@ class AuthService {
       });
     }
     const { tokens, userData } = await this.prepareData(user);
-    return { ...tokens, user };
+    return { ...tokens, userData };
   };
 
   logout = async (refreshToken: string) => {
@@ -118,7 +121,7 @@ class AuthService {
       });
     }
     const payload = await tokenService.validateRefreshToken(refreshToken);
-    const tokenData = await tokenService.findToken(refreshToken);
+    const tokenData = await tokenService.findRefreshToken(refreshToken);
     if (!payload || !tokenData) {
       throw ApiError.loginError({
         type: 'Unauthorized',
@@ -135,48 +138,7 @@ class AuthService {
       });
     }
     const { tokens, userData } = await this.prepareData(user);
-    return { ...tokens, user };
-  };
-
-  getUser = async (refreshToken: string) => {
-    if (!refreshToken) {
-      throw ApiError.loginError({
-        type: 'Unauthorized',
-        message: 'User unauthorized',
-      });
-    }
-    const payload = await tokenService.validateRefreshToken(refreshToken);
-    const tokenData = await tokenService.findToken(refreshToken);
-    if (!payload || !tokenData) {
-      throw ApiError.loginError({
-        type: 'Unauthorized',
-        message: 'User unauthorized',
-      });
-    }
-    const user = await User.findById({ _id: tokenData.user });
-    if (!user) {
-      throw ApiError.databaseError({
-        code: 404,
-        type: 'NotFound',
-        message: 'User not found',
-      });
-    }
-    const userDataTransfer = UserDto.getData(user);
-    const userData = await user.populate('info');
-    return userData;
-  };
-
-  getAllUsers = async () => {
-    const users = await User.find();
-    if (!users) {
-      throw ApiError.databaseError({
-        code: 404,
-        type: 'NotFound',
-        message: 'Users not found',
-      });
-    }
-    const userDataTransfer = users.map((user) => UserDto.getData(user));
-    return users;
+    return { ...tokens, userData };
   };
 }
 
