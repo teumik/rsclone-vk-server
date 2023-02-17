@@ -45,7 +45,7 @@ class PostsController {
     try {
       const { refreshToken } = req.cookies;
       console.log('getAllPost', 'getAllPost');
-      // const post = await postsService.getAllPost();
+      const post = await postsService.getAllPost();
       res.json({});
     } catch (error) {
       next(error);
