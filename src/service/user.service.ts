@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import User from '../models/user.model';
 import tokenService from './token.service';
 import Friends from '../models/friends.model';
+import ApiError from '../utils/apiError';
+import UserDto from '../utils/userData.dto';
 
 dotenv.config();
 
@@ -35,7 +37,7 @@ class UserService {
   };
 
   private findCurrentUser = async (refreshToken: string) => {
-    const tokenData = await tokenService.findToken(refreshToken);
+    const tokenData = await tokenService.findRefreshToken(refreshToken);
     if (!tokenData) {
       throw new Error('Tokent not found "findUsers"');
     }
@@ -130,6 +132,51 @@ class UserService {
     await existRequest.save();
 
     return existRequest;
+  };
+
+  getUser = async (refreshToken: string, id: string) => {
+    if (!refreshToken) {
+      throw ApiError.loginError({
+        type: 'Unauthorized',
+        message: 'User unauthorized',
+      });
+    }
+    const payload = await tokenService.validateRefreshToken(refreshToken);
+    const tokenData = await tokenService.findRefreshToken(refreshToken);
+    if (!payload || !tokenData) {
+      throw ApiError.loginError({
+        type: 'Unauthorized',
+        message: 'User unauthorized',
+      });
+    }
+    const userId = id || tokenData.user;
+    const user = await User.findById({ _id: userId })
+      .populate('info')
+      .select('id username isOnline info');
+
+    if (!user) {
+      throw ApiError.databaseError({
+        code: 404,
+        type: 'NotFound',
+        message: 'User not found',
+      });
+    }
+    return user;
+  };
+
+  getAllUsers = async () => {
+    const users = await User.find({})
+      .populate('info')
+      .select('id username isOnline info');
+
+    if (!users) {
+      throw ApiError.databaseError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Users not found',
+      });
+    }
+    return users;
   };
 }
 

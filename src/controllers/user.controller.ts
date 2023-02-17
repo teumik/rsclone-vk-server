@@ -31,7 +31,7 @@ class UserController {
   getReciveCount = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { refreshToken } = req.cookies;
-      const count = await userService.getRequestCount(refreshToken);
+      const count = await userService.getReciveCount(refreshToken);
       res.json(count);
     } catch (error) {
       next(error);
@@ -55,6 +55,26 @@ class UserController {
       const { refreshToken } = req.cookies;
       const friendsData = await userService.acceptFriend({ friendId, username, refreshToken });
       res.json(friendsData);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { refreshToken } = req.cookies;
+      const { id } = req.params;
+      const user = await userService.getUser(refreshToken, id);
+      res.json(user);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const users = await userService.getAllUsers();
+      res.json(users);
     } catch (error) {
       next(error);
     }
