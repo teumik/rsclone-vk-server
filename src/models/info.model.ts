@@ -2,7 +2,7 @@ import { Schema, model } from 'mongoose';
 
 const infoSchema = new Schema({
   user: { type: Schema.Types.ObjectId, require: true, ref: 'User' },
-  icon: { type: String },
+  avatar: { type: String },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   fullName: { type: String, required: true },

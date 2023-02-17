@@ -10,7 +10,7 @@ dotenv.config();
 
 interface IData {
   user: Schema.Types.ObjectId;
-  icon: string;
+  avatar: string;
   firstName: string;
   lastName: string;
   fullName: string;
@@ -47,7 +47,7 @@ type TField = [a: string, b: string | number | Schema.Types.ObjectId];
 class InfoService {
   private isExistProp = (prop: string) => {
     const reference = {
-      icon: '',
+      avatar: '',
       firstName: '',
       lastName: '',
       status: '',
