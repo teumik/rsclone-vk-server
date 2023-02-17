@@ -24,7 +24,7 @@ interface IData {
   favoriteMusic: string;
   favoriteBooks: string;
   favoriteFilms: string;
-  birthDate: number;
+  birthDate: Date;
 }
 
 type TData = Partial<IData>;
@@ -42,7 +42,7 @@ interface IInfoData extends IUserAuthData {
   infoData: TData;
 }
 
-type TField = [a: string, b: string | number | Schema.Types.ObjectId];
+type TField = [a: string, b: string | Date | Schema.Types.ObjectId];
 
 class InfoService {
   private isExistProp = (prop: string) => {
@@ -71,9 +71,9 @@ class InfoService {
 
     if (!this.isExistProp(key)) return removePair;
     if (value === null || value === '') return removePair;
-    if (key === 'birthDate' && typeof value === 'number') {
-      return value > Date.now() ? removePair : field;
-    }
+    // if (key === 'birthDate' && typeof value === 'number') {
+    //   return value > Date.now() ? removePair : field;
+    // }
     return field;
   };
 

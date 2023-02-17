@@ -15,7 +15,7 @@ interface ISearch {
   hometown: string;
   school: string;
   university: string;
-  birthDate: number;
+  birthDate: Date;
 }
 
 class SearchService {
