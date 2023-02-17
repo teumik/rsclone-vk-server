@@ -3,7 +3,7 @@ import tokenService from '../service/token.service';
 import ApiError from '../utils/apiError';
 import User from '../models/user.model';
 
-const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+const accessMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const error = (message: string) => ApiError.loginError({
       type: 'Unauthorized',
@@ -76,4 +76,4 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
   }
 };
 
-export default authMiddleware;
+export default accessMiddleware;
