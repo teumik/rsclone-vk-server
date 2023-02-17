@@ -10,29 +10,6 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
       message,
     });
 
-    const { email, username } = req.body;
-    if (email || username) {
-      const findedByEmail = await User.findOne({ email });
-      const findedByUsername = await User.findOne({ username });
-      const user = findedByEmail || findedByUsername;
-      if (!user) {
-        throw ApiError.databaseError({
-          code: 404,
-          type: 'NotFound',
-          message: `User ${email || username} not found`,
-        });
-      }
-      if (!user.isActivated) {
-        throw ApiError.loginError({
-          code: 400,
-          type: 'Unconfirmed',
-          message: `User ${email || username} has not confirmed account`,
-        });
-      }
-      next();
-      return;
-    }
-
     const { authorization } = req.headers;
     const accessToken = authorization?.split(' ')[1];
     if (!accessToken) {
