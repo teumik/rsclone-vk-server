@@ -9,7 +9,7 @@ const settingsSchema = new Schema({
   },
   visibleFields: [{
     type: String,
-    enum: ['birthDate', 'friends', 'posts'],
+    enum: ['all', 'birthDate', 'friends', 'posts'],
   }],
 });
 
