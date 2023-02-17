@@ -12,15 +12,11 @@ const accessMiddleware = async (req: Request, res: Response, next: NextFunction)
 
     const { authorization } = req.headers;
     const accessToken = authorization?.split(' ')[1];
-    console.log(authorization);
-    console.log(accessToken);
-
     if (!accessToken) {
       throw error('Access token not provided');
     }
     if (accessToken !== 'undefined') {
       const payload = await tokenService.validateAccessToken(accessToken);
-      console.log(payload);
       if (!payload) {
         throw error('Access token not valid');
       }
