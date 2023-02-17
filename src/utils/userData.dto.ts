@@ -2,9 +2,9 @@ import { IUserModel } from '../service/auth.service';
 
 class UserDto {
   static getData = ({
-    id, email, username, isActivated,
+    id, username, isActivated, isOnline,
   }: IUserModel) => ({
-    id, email, username, isActivated,
+    id, username, isActivated, isOnline,
   });
 }
 
