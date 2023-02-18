@@ -39,7 +39,9 @@ class SettingsService {
         message: 'Seettings not found',
       });
     }
-    const existSettings = await Settings.findByIdAndUpdate({ _id: user.settings }, settings);
+    const existSettings = await Settings.findByIdAndUpdate({ _id: user.settings }, settings, {
+      returnOriginal: false,
+    });
     return existSettings;
   };
 
