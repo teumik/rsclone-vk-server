@@ -46,25 +46,75 @@ class PostsController {
   };
 
   addLike = async (req: Request, res: Response, next: NextFunction) => {
-    console.log('add_like');
-
     try {
       const { refreshToken } = req.cookies;
-      const post = await postsService.addLike();
-      res.json({});
+      const { postId } = req.body;
+      const likeData = await postsService.addLike({ postId, refreshToken });
+      res.json(likeData);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  removeLike = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { refreshToken } = req.cookies;
+      const { postId } = req.body;
+      const likeData = await postsService.removeLike({ postId, refreshToken });
+      res.json(likeData);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getLikes = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { refreshToken } = req.cookies;
+      const likes = await postsService.getLikes({ refreshToken });
+      res.json(likes);
     } catch (error) {
       next(error);
     }
   };
 
   addComment = async (req: Request, res: Response, next: NextFunction) => {
-    console.log('add_comment');
-
     try {
       const { refreshToken } = req.cookies;
-      // const post = await postsService.addComment();
-      // res.json({});
-      res.json({});
+      const { comment, postId } = req.body;
+      const commentData = await postsService.addComment({ refreshToken, postId, comment });
+      res.json(commentData);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  editComment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { refreshToken } = req.cookies;
+      const { commentId, comment } = req.body;
+      const commentData = await postsService.editComment({ refreshToken, commentId, comment });
+      res.json(commentData);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  removeComment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { refreshToken } = req.cookies;
+      const { commentId, postId } = req.body;
+      const commentData = await postsService.removeComment({ refreshToken, postId, commentId });
+      res.json(commentData);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getComments = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { postId } = req.params;
+      const comments = await postsService.getComments({ postId });
+      res.json(comments);
     } catch (error) {
       next(error);
     }

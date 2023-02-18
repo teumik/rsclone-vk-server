@@ -6,6 +6,8 @@ import ApiError from '../utils/apiError';
 import Post from '../models/posts.model';
 import PostDto from '../utils/postData.dto';
 import Info from '../models/info.model';
+import Likes from '../models/likes.model';
+import Comments from '../models/comments.model';
 
 dotenv.config();
 
@@ -25,6 +27,13 @@ interface IAddPost extends IFindUser {
 }
 
 interface IEditPost extends IAddPost {
+  postId: string;
+}
+
+interface IComment {
+  refreshToken: string;
+  commentId: string;
+  comment: string;
   postId: string;
 }
 
@@ -94,7 +103,7 @@ class PostsService {
   };
 
   removePost = async ({ postId, refreshToken }: Pick<IEditPost, 'postId' | 'refreshToken'>) => {
-    const user = await (await this.findUser({ refreshToken }));
+    const user = await this.findUser({ refreshToken });
     const postData = await Post.findById(postId);
     if (!postData) {
       throw ApiError.postError({
@@ -109,14 +118,190 @@ class PostsService {
     return { status: true, type: 'Remove', postData };
   };
 
-  addLike = async () => {
-    console.log('like');
-    return null;
+  addLike = async ({ postId, refreshToken }: Pick<IEditPost, 'postId' | 'refreshToken'>) => {
+    const user = await this.findUser({ refreshToken });
+    const post = await Post.findById(postId);
+    const existlike = await Likes.findOne({ post, user });
+    if (existlike) {
+      throw ApiError.likeError({
+        code: 421,
+        type: 'Duplicate',
+        message: 'Like exist',
+      });
+    }
+    if (!post) {
+      throw ApiError.postError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Post not found',
+      });
+    }
+    const like = await Likes.create({ user: user.id, post: post.id });
+    post.likes.push(like.id);
+    user.likes.push(like.id);
+    await post.save();
+    await user.save();
+    return like;
   };
 
-  addComment = async () => {
-    console.log('comment');
-    return null;
+  removeLike = async ({ postId, refreshToken }: Pick<IEditPost, 'postId' | 'refreshToken'>) => {
+    const user = await this.findUser({ refreshToken });
+    const post = await Post.findById(postId);
+    const like = await Likes.findOne({ post, user });
+    if (!like) {
+      throw ApiError.likeError({
+        code: 421,
+        type: 'Duplicate',
+        message: 'Like exist',
+      });
+    }
+    if (!post) {
+      throw ApiError.postError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Post not found',
+      });
+    }
+    user.likes = user.likes.filter((likeId) => likeId.toHexString() !== like.id);
+    post.likes = post.likes.filter((likeId) => likeId.toHexString() !== like.id);
+    await like.remove();
+    await user.save();
+    await post.save();
+    return { status: true, type: 'Remove', post };
+  };
+
+  getLikes = async ({ refreshToken }: Pick<IEditPost, 'refreshToken'>) => {
+    const user = await this.findUser({ refreshToken });
+    const like = await Likes.find({ user })
+      .populate({
+        path: 'post',
+        populate: {
+          path: 'user',
+          select: 'username',
+          populate: {
+            path: 'info',
+            select: 'fullName',
+          },
+        },
+      });
+    return like;
+  };
+
+  addComment = async ({ refreshToken, postId, comment: text }: Omit<IComment, 'commentId'>) => {
+    if (!text) return null;
+    const user = await this.findUser({ refreshToken });
+    const post = await Post.findById(postId);
+    if (!post) {
+      throw ApiError.postError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Post not found',
+      });
+    }
+    const comment = await Comments.create({
+      user: user.id, post: post.id, text,
+    });
+    await comment.populate({
+      path: 'user',
+      select: 'username',
+      populate: {
+        path: 'info',
+        select: 'fullName avatar',
+      },
+    });
+    await comment.populate({
+      path: 'post',
+    });
+    post.comments.push(comment.id);
+    await post.save();
+    return comment;
+  };
+
+  editComment = async ({
+    refreshToken, commentId, comment: text,
+  }: Omit<IComment, 'postId'>) => {
+    const user = await this.findUser({ refreshToken });
+    const comment = await Comments.findById(commentId);
+    if (!comment) {
+      throw ApiError.commentError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Comment not found',
+      });
+    }
+    if (comment.user.toHexString() !== user.id) {
+      throw ApiError.commentError({
+        type: 'NotAccess',
+        message: 'Not your comment',
+      });
+    }
+    comment.text = text;
+    await comment.save();
+    await comment.populate({
+      path: 'user',
+      select: 'username',
+      populate: {
+        path: 'info',
+        select: 'fullName avatar',
+      },
+    });
+    await comment.populate({
+      path: 'post',
+    });
+    return comment;
+  };
+
+  removeComment = async ({ refreshToken, postId, commentId }: Omit<IComment, 'comment'>) => {
+    const user = await this.findUser({ refreshToken });
+    const post = await Post.findById(postId);
+    const comment = await Comments.findById(commentId);
+    if (!comment) {
+      throw ApiError.commentError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Comment not found',
+      });
+    }
+    if (comment.user.toHexString() !== user.id) {
+      throw ApiError.commentError({
+        type: 'NotAccess',
+        message: 'Not your comment',
+      });
+    }
+    if (!post) {
+      throw ApiError.postError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Post not found',
+      });
+    }
+    post.comments = post.comments.filter((item) => item.toHexString() !== commentId);
+    await post.save();
+    await comment.remove();
+    return { post, comment };
+  };
+
+  getComments = async ({ postId }: Pick<IComment, 'postId'>) => {
+    const post = await Post.findById(postId);
+    if (!post) {
+      throw ApiError.postError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Post not found',
+      });
+    }
+    await post.populate({
+      path: 'comments',
+      populate: {
+        path: 'user',
+        select: 'username',
+        populate: {
+          path: 'info',
+          select: 'fullName avatar',
+        },
+      },
+    });
+    return post;
   };
 
   getPost = async ({ refreshToken, postId }: Pick<IEditPost, 'postId' | 'refreshToken'>) => {
