@@ -3,12 +3,12 @@ import userController from '../controllers/user.controller';
 
 const router = Router();
 
-router.post('/friends/add', userController.addFriend);
-router.post('/friends/accept', userController.acceptFriend);
-router.post('/friends/remove', userController.removeFriends);
+router.post('/friends', userController.addFriend);
+router.put('/friends', userController.acceptFriend);
+router.delete('/friends', userController.removeFriends);
+router.get('/friends', userController.getFriends);
 router.get('/friends/incount', userController.getRequestCount);
 router.get('/friends/outcount', userController.getReciveCount);
-router.get('/friends', userController.getFriends);
 router.get('/:id', userController.getUser);
 router.get('', userController.getAllUsers);
 

@@ -3,7 +3,7 @@ import infoController from '../controllers/info.controller';
 
 const router = Router();
 
-router.post('/edit', infoController.sendInfo);
+router.patch('', infoController.sendInfo);
 router.get('', infoController.getInfo);
 
 export default router;
