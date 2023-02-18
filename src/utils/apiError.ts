@@ -127,6 +127,30 @@ class ApiError extends Error {
       name: 'PostError',
     });
   }
+
+  static likeError({
+    status, code, message, type,
+  }: IApiError) {
+    return new ApiError({
+      status,
+      code: code || 403,
+      type,
+      message,
+      name: 'LikeError',
+    });
+  }
+
+  static commentError({
+    status, code, message, type,
+  }: IApiError) {
+    return new ApiError({
+      status,
+      code: code || 403,
+      type,
+      message,
+      name: 'CommentError',
+    });
+  }
 }
 
 export default ApiError;
