@@ -9,9 +9,11 @@ class PostsController {
   addPost = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { refreshToken } = req.cookies;
-      console.log('addPost', 'addPost');
-      const post = await postsService.addPost();
-      res.json({});
+      const { userId, username, post } = req.body;
+      const postData = await postsService.addPost({
+        refreshToken, userId, username, post,
+      });
+      res.json(postData);
     } catch (error) {
       next(error);
     }
@@ -20,9 +22,48 @@ class PostsController {
   editPost = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { refreshToken } = req.cookies;
-      const { postId } = req.params;
-      console.log(postId, 'editPost');
-      const post = await postsService.editPost();
+      const {
+        postId, userId, username, post,
+      } = req.body;
+      const postData = await postsService.editPost({
+        postId, refreshToken, userId, username, post,
+      });
+      res.json(postData);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  removePost = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { refreshToken } = req.cookies;
+      const { postId } = req.body;
+      const post = await postsService.removePost({ postId, refreshToken });
+      res.json(post);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  addLike = async (req: Request, res: Response, next: NextFunction) => {
+    console.log('add_like');
+
+    try {
+      const { refreshToken } = req.cookies;
+      const post = await postsService.addLike();
+      res.json({});
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  addComment = async (req: Request, res: Response, next: NextFunction) => {
+    console.log('add_comment');
+
+    try {
+      const { refreshToken } = req.cookies;
+      // const post = await postsService.addComment();
+      // res.json({});
       res.json({});
     } catch (error) {
       next(error);
@@ -33,9 +74,19 @@ class PostsController {
     try {
       const { refreshToken } = req.cookies;
       const { postId } = req.params;
-      console.log(postId, 'getPost');
-      const post = await postsService.getPost();
-      res.json({});
+      const postData = await postsService.getPost({ refreshToken, postId });
+      res.json(postData);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAllUserPost = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { refreshToken } = req.cookies;
+      const { userId } = req.params;
+      const posts = await postsService.getAllUserPost({ refreshToken, userId });
+      res.json(posts);
     } catch (error) {
       next(error);
     }
@@ -43,10 +94,8 @@ class PostsController {
 
   getAllPost = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { refreshToken } = req.cookies;
-      console.log('getAllPost', 'getAllPost');
-      const post = await postsService.getAllPost();
-      res.json({});
+      const posts = await postsService.getAllPost();
+      res.json(posts);
     } catch (error) {
       next(error);
     }
