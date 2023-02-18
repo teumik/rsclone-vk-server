@@ -68,12 +68,8 @@ class InfoService {
   private fieldValidate = (field: TField) => {
     const [key, value] = field;
     const removePair = [key, ''];
-
     if (!this.isExistProp(key)) return removePair;
     if (value === null || value === '') return removePair;
-    // if (key === 'birthDate' && typeof value === 'number') {
-    //   return value > Date.now() ? removePair : field;
-    // }
     return field;
   };
 
