@@ -136,6 +136,7 @@ class UserService {
     const existRequest = await this.hasExistRequest({ userId: user.id, friendId: friend.id });
     if (existRequest) {
       throw ApiError.friendError({
+        code: 421,
         type: 'Duplicate',
         message: 'Request exist',
       });
@@ -164,6 +165,7 @@ class UserService {
     const existFriends = user.friends.find((el) => el.friendId?.toString() === friend.id);
     if (existFriends) {
       throw ApiError.friendError({
+        code: 421,
         type: 'Duplicate',
         message: 'Friend exist in user',
       });
