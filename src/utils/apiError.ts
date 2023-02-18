@@ -115,6 +115,18 @@ class ApiError extends Error {
       name: 'InfoError',
     });
   }
+
+  static postError({
+    status, code, message, type,
+  }: IApiError) {
+    return new ApiError({
+      status,
+      code: code || 403,
+      type,
+      message,
+      name: 'PostError',
+    });
+  }
 }
 
 export default ApiError;
