@@ -13,6 +13,7 @@ const userSchema = new Schema({
     friendId: { type: Schema.Types.ObjectId, ref: 'User' },
   }],
   posts: [{ type: Schema.Types.ObjectId, ref: 'Posts' }],
+  likes: [{ type: Schema.Types.ObjectId, ref: 'Likes' }],
   isOnline: { type: Boolean, required: true, default: false },
   isActivated: { type: Boolean, default: false },
   activationLink: { type: String },
