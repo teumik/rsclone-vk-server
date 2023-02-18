@@ -202,7 +202,7 @@ class UserService {
     }
     const userId = id || tokenData.user;
     const user = await User.findById({ _id: userId })
-      .populate('info')
+      .populate('info posts')
       .select('id username isOnline info');
 
     if (!user) {
