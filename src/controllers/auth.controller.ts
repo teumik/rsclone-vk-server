@@ -67,7 +67,7 @@ class AuthController {
       const { email, username, password } = req.body;
       const userData = await authService.login({ email, username, password });
       const refreshOptions = this.getRefreshOptions(1000 * 60 * 60 * 24);
-      const { accessToken, userData: user } = userData;
+      const { accessToken, user } = userData;
       res.status(201)
         .cookie('refreshToken', userData.refreshToken, refreshOptions)
         .set(this.getTokensHeader(userData.accessToken))

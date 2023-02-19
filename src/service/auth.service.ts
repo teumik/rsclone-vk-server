@@ -55,7 +55,7 @@ class AuthService {
       user: undefined, firstName, lastName, fullName: `${firstName} ${lastName}`,
     });
     const user = await User.create({
-      email, username, password: hashPassword, activationLink, info,
+      email, username, password: hashPassword, activationLink, info: info.id,
     });
     info.user = user.id;
     await info.save();
@@ -98,8 +98,12 @@ class AuthService {
         message: `User '${email || username}', has not valid password`,
       });
     }
+    await user.populate({
+      path: 'info',
+      select: 'fullName',
+    });
     const { tokens, userData } = await this.prepareData(user);
-    return { ...tokens, userData };
+    return { ...tokens, user };
   };
 
   logout = async (refreshToken: string) => {

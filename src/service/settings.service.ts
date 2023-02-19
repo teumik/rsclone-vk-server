@@ -65,7 +65,7 @@ class SettingsService {
         });
       }
       settings = await Settings.create({
-        user,
+        user: user.id,
       });
       user.settings = settings.id;
       user.save();
