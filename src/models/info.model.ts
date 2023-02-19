@@ -16,7 +16,6 @@ const infoSchema = new Schema({
   favoriteMusic: { type: String },
   favoriteBooks: { type: String },
   favoriteFilms: { type: String },
-  // birthDate: { type: Number },
   birthDate: { type: Date },
 });
 
