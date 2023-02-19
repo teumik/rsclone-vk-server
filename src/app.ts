@@ -22,7 +22,8 @@ const { greetingMessage } = settings;
 
 const app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
 app.use(cookieParser());
 app.use(corsMiddleware);
 app.get('/', (req, res) => res.send(greetingMessage));
@@ -38,9 +39,3 @@ app.use('/posts', postsRouter);
 app.use(loggerMiddleware);
 app.use(errorMiddleware);
 app.listen(PORT || 5555, async () => { await databaseController.connectDatabase(DB_URL); });
-
-app.post('/test-image', (req, res, next) => {
-  console.log(req);
-  console.log(req.body);
-  res.json({ message: 'get it' });
-});
