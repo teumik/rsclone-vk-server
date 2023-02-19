@@ -65,11 +65,50 @@ class InfoService {
     return prop in reference;
   };
 
+  private imageChecker = (image: string) => {
+    const base64 = image.toString().split(',')[1];
+    const stats = image.toString().split(',')[0].split(';');
+    const encode = stats[1];
+    const type = stats[0].split(':')[1];
+    const fileType = type.split('/')[0];
+    const ext = type.split('/')[1];
+    const maxSize = 1024 * 5120;
+    if (encode !== 'base64') {
+      throw ApiError.imageError({
+        type: 'NotBase64',
+        message: 'Encode not base64',
+      });
+    }
+    if (fileType !== 'image') {
+      throw ApiError.imageError({
+        type: 'BadType',
+        message: 'File is not image',
+      });
+    }
+    const validExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+    if (!validExtensions.includes(ext)) {
+      throw ApiError.imageError({
+        type: 'BadExt',
+        message: `Allowed extension: ${validExtensions.join(', ')}`,
+      });
+    }
+    const buffer = Buffer.from(base64, 'base64');
+    if (buffer.byteLength > maxSize) {
+      throw ApiError.imageError({
+        code: 413,
+        type: 'TooLarge',
+        message: `Size is equal ${buffer.byteLength}`,
+      });
+    }
+    console.log(validExtensions.join(', '));
+  };
+
   private fieldValidate = (field: TField) => {
     const [key, value] = field;
     const removePair = [key, ''];
     if (!this.isExistProp(key)) return removePair;
     if (value === null || value === '') return removePair;
+    if (key === 'avatar' && typeof value === 'string') this.imageChecker(value);
     return field;
   };
 
