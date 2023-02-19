@@ -153,8 +153,8 @@ class InfoService {
 
   getInfo = async (refreshToken: string) => {
     const user = await this.findByToken(refreshToken);
-    const { info } = await user.populate('info');
-    return info;
+    const infoData = await Info.findOne({ user: user.id }).select('-__v -fullName -_id');
+    return infoData;
   };
 }
 
