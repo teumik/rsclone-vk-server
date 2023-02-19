@@ -10,14 +10,6 @@ function errorMiddleware(err: Error, req: Request, res: Response, next: NextFunc
     });
     return;
   }
-  if (err instanceof Error) {
-    res.status(418).json({
-      ...err,
-      message: `Not handeled in custom Error: ${err.message}`,
-      handled: 'error.middleware',
-    });
-    return;
-  }
   res.json(err);
 }
 
