@@ -38,3 +38,9 @@ app.use('/posts', postsRouter);
 app.use(loggerMiddleware);
 app.use(errorMiddleware);
 app.listen(PORT || 5555, async () => { await databaseController.connectDatabase(DB_URL); });
+
+app.post('/test-image', (req, res, next) => {
+  console.log(req);
+  console.log(req.body);
+  res.json({ message: 'get it' });
+});
