@@ -9,7 +9,7 @@ import ApiError from '../utils/apiError';
 dotenv.config();
 
 interface IData {
-  user: Schema.Types.ObjectId;
+  user: string;
   avatar: string;
   firstName: string;
   lastName: string;
@@ -24,7 +24,7 @@ interface IData {
   favoriteMusic: string;
   favoriteBooks: string;
   favoriteFilms: string;
-  birthDate: Date;
+  birthDate: string;
 }
 
 type TData = Partial<IData>;
@@ -42,7 +42,7 @@ interface IInfoData extends IUserAuthData {
   infoData: TData;
 }
 
-type TField = [a: string, b: string | Date | Schema.Types.ObjectId];
+type TField = [a: string, b: string];
 
 class InfoService {
   private isExistProp = (prop: string) => {
@@ -102,12 +102,34 @@ class InfoService {
     }
   };
 
+  private checkLength = (value: string, length: number) => {
+    const isLengthLess = (n: number) => value.length <= n;
+    return isLengthLess(length);
+  };
+
   private fieldValidate = (field: TField) => {
     const [key, value] = field;
     const removePair = [key, ''];
-    if (!this.isExistProp(key)) return removePair;
+    if (!this.isExistProp(key)) {
+      throw ApiError.databaseError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Field not found',
+      });
+    }
     if (value === null || value === '') return removePair;
-    if (key === 'avatar' && typeof value === 'string') this.imageChecker(value);
+    const isKey = (k: string) => key === k;
+    if (isKey('avatar')) this.imageChecker(value);
+    if (isKey('firstName')) this.checkLength(value, 20);
+    if (isKey('lastName')) this.checkLength(value, 20);
+    if (isKey('status')) this.checkLength(value, 140);
+    if (isKey('hometown')) this.checkLength(value, 30);
+    if (isKey('university')) this.checkLength(value, 50);
+    if (isKey('interests')) this.checkLength(value, 140);
+    if (isKey('lifePosition')) this.checkLength(value, 140);
+    if (isKey('favoriteMusic')) this.checkLength(value, 140);
+    if (isKey('favoriteBooks')) this.checkLength(value, 140);
+    if (isKey('favoriteFilms')) this.checkLength(value, 140);
     return field;
   };
 
