@@ -78,7 +78,7 @@ class AuthValidate {
     return this.setValid();
   }
 
-  private checkEmailSymbols(data: IUser) {
+  checkEmailSymbols(data: IUser) {
     const { email } = data;
     const regexValue = /^[\w.-]+@([\w-]+\.)+[\w-]{2,4}$/;
     const regex = new RegExp(regexValue);
@@ -88,10 +88,11 @@ class AuthValidate {
     return this.setValid();
   }
 
-  private checkPasswordSymbols(data: IUser) {
+  checkPasswordSymbols(data: IUser) {
     const { password } = data;
     const regexValue = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})/;
     const regex = new RegExp(regexValue);
+    // console.log(regex.test(password));
     if (!regex.test(password)) {
       return this.setInvalid('Password incorrect');
     }
@@ -120,3 +121,6 @@ class AuthValidate {
 const authValidate = new AuthValidate();
 
 export default authValidate;
+
+const a = authValidate.checkPasswordSymbols({ password: '123@aaaAasd' } as IUser);
+console.log(a);
