@@ -80,10 +80,24 @@ class AuthService {
     return userData;
   };
 
+  private findUser = async ({ email, username }: Omit<ILogin, 'password'>) => {
+    let user;
+    if (username) {
+      user = await User.findOne({ username });
+      if (user) return user;
+    }
+    if (email) {
+      user = await User.findOne({ email });
+      if (user) return user;
+    }
+    if (!user) {
+      user = await User.findOne({ email: username || email });
+    }
+    return user;
+  };
+
   login = async ({ email, username, password }: ILogin) => {
-    const findedByEmail = await User.findOne({ email });
-    const findedByUsername = await User.findOne({ username });
-    const user = findedByEmail || findedByUsername;
+    const user = await this.findUser({ email, username });
     if (!user) {
       throw ApiError.databaseError({
         code: 404,
