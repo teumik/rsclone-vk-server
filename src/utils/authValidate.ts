@@ -80,9 +80,8 @@ class AuthValidate {
 
   private checkEmailSymbols(data: IUser) {
     const { email } = data;
-    const regexValue = /^[\w.-]+@([\w-]+\.)+[\w-]{2,4}$/;
-    const regex = new RegExp(regexValue);
-    if (!regex.test(email)) {
+    const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    if (!emailRegex.test(email)) {
       return this.setInvalid('Email incorrect');
     }
     return this.setValid();
