@@ -89,8 +89,8 @@ class AuthValidate {
 
   checkPasswordSymbols(data: IUser) {
     const { password } = data;
-    const basicRegex = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.*[!"'#$%'()*+,-./:;<>=?@[\]^_{|}~])(?=.{8,})/;
-    const specialRegex = /[!"'#$%`()*+,-.:;<>=?@[\]^_{|}~]\\/;
+    const basicRegex = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.*[!"'#$%'()*+,-./:;<>=?@[\]^_{\\|}~])(?=.{8,})/;
+    const specialRegex = /[!"'#$%`()*+,-.:;<>=?@[\]^_{\\|}~]/;
     const upperRegex = /[A-Z]/;
     const lowerRegex = /[a-z]/;
     const numberRegex = /[0-9]/;
