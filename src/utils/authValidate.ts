@@ -90,7 +90,7 @@ class AuthValidate {
   checkPasswordSymbols(data: IUser) {
     const { password } = data;
     const basicRegex = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.*[!"'#$%'()*+,-./:;<>=?@[\]^_{|}~])(?=.{8,})/;
-    const specialRegex = /[!"'#$%'()*+,-./:;<>=?@[\]^_{|}~]/;
+    const specialRegex = /[!"'#$%`()*+,-.:;<>=?@[\]^_{|}~]\\/;
     const upperRegex = /[A-Z]/;
     const lowerRegex = /[a-z]/;
     const numberRegex = /[0-9]/;
@@ -108,7 +108,7 @@ class AuthValidate {
       return this.setInvalid('Password not include number');
     }
     if (!specialRegex.test(password)) {
-      return this.setInvalid(`Password not include special symbols ${specialRegex}`);
+      return this.setInvalid('Password not include special symbols: !@#$%^&*()-_+=,.:;<>?[]{}"\'|\\/~`');
     }
     if (!basicRegex.test(password)) {
       return this.setInvalid('Password incorrect');
