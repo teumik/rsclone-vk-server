@@ -78,7 +78,7 @@ class AuthValidate {
     return this.setValid();
   }
 
-  checkEmailSymbols(data: IUser) {
+  private checkEmailSymbols(data: IUser) {
     const { email } = data;
     const regexValue = /^[\w.-]+@([\w-]+\.)+[\w-]{2,4}$/;
     const regex = new RegExp(regexValue);
@@ -90,10 +90,28 @@ class AuthValidate {
 
   checkPasswordSymbols(data: IUser) {
     const { password } = data;
-    const regexValue = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})/;
-    const regex = new RegExp(regexValue);
-    // console.log(regex.test(password));
-    if (!regex.test(password)) {
+    const basicRegex = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.*[!"'#$%'()*+,-./:;<>=?@[\]^_{|}~])(?=.{8,})/;
+    const specialRegex = /[!"'#$%'()*+,-./:;<>=?@[\]^_{|}~]/;
+    const upperRegex = /[A-Z]/;
+    const lowerRegex = /[a-z]/;
+    const numberRegex = /[0-9]/;
+    const spaceRegex = /[ ]/;
+    if (spaceRegex.test(password)) {
+      return this.setInvalid('Password must not include space');
+    }
+    if (!upperRegex.test(password)) {
+      return this.setInvalid('Password not include upper case');
+    }
+    if (!lowerRegex.test(password)) {
+      return this.setInvalid('Password not include lower case');
+    }
+    if (!numberRegex.test(password)) {
+      return this.setInvalid('Password not include number');
+    }
+    if (!specialRegex.test(password)) {
+      return this.setInvalid(`Password not include special symbols ${specialRegex}`);
+    }
+    if (!basicRegex.test(password)) {
       return this.setInvalid('Password incorrect');
     }
     return this.setValid();
@@ -110,7 +128,9 @@ class AuthValidate {
       this.isEmpty.bind(this),
       this.checkNameLength.bind(this),
       this.checkPasswordLength.bind(this),
-      this.checkPasswordLength.bind(this)
+      this.checkPasswordLength.bind(this),
+      this.checkEmailSymbols.bind(this),
+      this.checkPasswordSymbols.bind(this)
     );
     const catchedError = chainValidation(data);
     if (!catchedError.status) return catchedError;
@@ -121,6 +141,3 @@ class AuthValidate {
 const authValidate = new AuthValidate();
 
 export default authValidate;
-
-const a = authValidate.checkPasswordSymbols({ password: '123@aaaAasd' } as IUser);
-console.log(a);
