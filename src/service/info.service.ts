@@ -100,7 +100,6 @@ class InfoService {
         message: `Size is equal ${buffer.byteLength}`,
       });
     }
-    console.log(validExtensions.join(', '));
   };
 
   private fieldValidate = (field: TField) => {
