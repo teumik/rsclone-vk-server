@@ -42,6 +42,9 @@ class AuthValidate {
     const {
       username, password, firstName, lastName, email,
     } = data;
+    if (!email) {
+      return this.setInvalid('Email cannot be empty');
+    }
     if (!username) {
       return this.setInvalid('Username cannot be empty');
     }
@@ -54,26 +57,43 @@ class AuthValidate {
     if (!lastName) {
       return this.setInvalid('LastName cannot be empty');
     }
-    if (!email) {
-      return this.setInvalid('Email cannot be empty');
-    }
     return this.setValid();
   }
 
   private checkNameLength(data: IUser) {
     const { username } = data;
-    const minLength = 5;
+    const minLength = 4;
     if (username.length < minLength) {
-      return this.setInvalid(`Username less than ${minLength}`);
+      return this.setInvalid(`Username less than ${minLength} symbols`);
     }
     return this.setValid();
   }
 
   private checkPasswordLength(data: IUser) {
     const { password } = data;
-    const minLength = 7;
+    const minLength = 8;
     if (password.length < minLength) {
-      return this.setInvalid(`Password less than ${minLength}`);
+      return this.setInvalid(`Password less than ${minLength} symbols`);
+    }
+    return this.setValid();
+  }
+
+  private checkEmailSymbols(data: IUser) {
+    const { email } = data;
+    const regexValue = /^[\w.-]+@([\w-]+\.)+[\w-]{2,4}$/;
+    const regex = new RegExp(regexValue);
+    if (!regex.test(email)) {
+      return this.setInvalid('Email incorrect');
+    }
+    return this.setValid();
+  }
+
+  private checkPasswordSymbols(data: IUser) {
+    const { password } = data;
+    const regexValue = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})/;
+    const regex = new RegExp(regexValue);
+    if (!regex.test(password)) {
+      return this.setInvalid('Password incorrect');
     }
     return this.setValid();
   }
@@ -92,7 +112,6 @@ class AuthValidate {
       this.checkPasswordLength.bind(this)
     );
     const catchedError = chainValidation(data);
-
     if (!catchedError.status) return catchedError;
     return this.setValid();
   }
