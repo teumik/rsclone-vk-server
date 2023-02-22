@@ -97,7 +97,12 @@ class PostsService {
         message: 'Not access',
       });
     }
-    Object.assign(postData, { ...postData, ...post });
+    Object.assign(postData, {
+      ...postData,
+      ...post,
+      isEdit: true,
+      lastEdit: Date.now(),
+    });
     await postData.save();
     return postData;
   };

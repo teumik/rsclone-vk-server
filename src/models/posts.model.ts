@@ -7,6 +7,8 @@ const schema = new Schema({
   comments: [{ type: Schema.Types.ObjectId, ref: 'Comments' }],
   files: [{ type: String }],
   date: { type: Date, required: true, default: Date.now() },
+  isEdit: { type: Boolean, default: false },
+  lastEdit: { type: Date },
 });
 
 const Post = model('Posts', schema);
