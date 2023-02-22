@@ -333,14 +333,6 @@ class PostsService {
   getAllUserPost = async ({ refreshToken, userId }: IFindUser) => {
     const user = await (await this.findUser({ refreshToken, userId })).populate({
       path: 'posts',
-      populate: {
-        path: 'user',
-        select: 'isOnline username',
-        populate: {
-          path: 'info',
-          select: 'avatar fullName',
-        },
-      },
     });
     return user.posts;
   };
