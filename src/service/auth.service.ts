@@ -41,7 +41,6 @@ class AuthService {
   }: IUser) => {
     const findedByEmail = await User.findOne({ email });
     const findedByUsername = await User.findOne({ username });
-    const existUser = findedByEmail || findedByUsername;
     if (findedByEmail) {
       throw ApiError.databaseError({
         code: 421,
@@ -54,13 +53,6 @@ class AuthService {
         code: 421,
         type: 'Duplicate',
         message: `User with '${username}' exist`,
-      });
-    }
-    if (existUser) {
-      throw ApiError.databaseError({
-        code: 421,
-        type: 'Duplicate',
-        message: `User with '${existUser.email ?? existUser.username}' exist`,
       });
     }
     const activationLink = uuidv4();
