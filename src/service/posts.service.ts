@@ -73,10 +73,9 @@ class PostsService {
       user: user.id,
       ...post,
     });
-    const postDto = PostDto.getData(postData);
     user.posts.push(postData.id);
     user.save();
-    return postDto;
+    return postData;
   };
 
   editPost = async ({
@@ -104,6 +103,7 @@ class PostsService {
       lastEdit: Date.now(),
     });
     await postData.save();
+    // const postDto = PostDto.getData(postData);
     return postData;
   };
 
