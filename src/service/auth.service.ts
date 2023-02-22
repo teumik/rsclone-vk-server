@@ -42,6 +42,20 @@ class AuthService {
     const findedByEmail = await User.findOne({ email });
     const findedByUsername = await User.findOne({ username });
     const existUser = findedByEmail || findedByUsername;
+    if (findedByEmail) {
+      throw ApiError.databaseError({
+        code: 421,
+        type: 'Duplicate',
+        message: `User with '${email}' exist`,
+      });
+    }
+    if (findedByUsername) {
+      throw ApiError.databaseError({
+        code: 421,
+        type: 'Duplicate',
+        message: `User with '${username}' exist`,
+      });
+    }
     if (existUser) {
       throw ApiError.databaseError({
         code: 421,
