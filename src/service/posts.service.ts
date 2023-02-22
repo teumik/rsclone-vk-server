@@ -336,14 +336,15 @@ class PostsService {
   };
 
   getAllPost = async () => {
-    const posts = await Post.find({}).select('-__v');
-    const promises = posts.map(async (post) => {
-      const userId = post.user;
-      const user = await Info.findOne({ user: userId }).select('-__v');
-      return { post, user };
+    const posts = await Post.find({}).select('-__v').populate({
+      path: 'user',
+      select: 'isOnline username',
+      populate: {
+        path: 'info',
+        select: 'avatar fullName',
+      },
     });
-    const postsData = Promise.all(promises);
-    return postsData;
+    return posts;
   };
 }
 
