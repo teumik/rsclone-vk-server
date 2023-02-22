@@ -6,7 +6,7 @@ const schema = new Schema({
   likes: [{ type: Schema.Types.ObjectId, ref: 'Likes' }],
   comments: [{ type: Schema.Types.ObjectId, ref: 'Comments' }],
   files: [{ type: String }],
-  date: { type: Date, required: true, default: Date.now() },
+  date: { type: Date, required: true, default: Date.now },
   isEdit: { type: Boolean, default: false },
   lastEdit: { type: Date },
 });

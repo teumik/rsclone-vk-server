@@ -5,7 +5,7 @@ const schema = new Schema({
   post: { type: Schema.Types.ObjectId, required: true, ref: 'Posts' },
   text: { type: String },
   files: [{ type: String }],
-  date: { type: Date, required: true, default: Date.now() },
+  date: { type: Date, required: true, default: Date.now },
 });
 
 const Comments = model('Comments', schema);
