@@ -331,10 +331,14 @@ class PostsService {
   };
 
   getAllUserPost = async ({ refreshToken, userId }: IFindUser) => {
-    const user = await (await this.findUser({ refreshToken, userId })).populate({
+    const user = await this.findUser({ refreshToken, userId });
+    const userPopulated = await user.populate({
       path: 'posts',
+      options: {
+        sort: { date: -1 },
+      },
     });
-    return user.posts;
+    return userPopulated.posts;
   };
 
   getAllPost = async () => {
@@ -345,7 +349,7 @@ class PostsService {
         path: 'info',
         select: 'avatar fullName',
       },
-    });
+    }).sort({ date: -1 });
     return posts;
   };
 }
