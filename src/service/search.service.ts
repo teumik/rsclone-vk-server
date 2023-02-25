@@ -49,7 +49,10 @@ class SearchService {
   };
 
   private findUsers = async (value: string) => {
-    const users = await User.find().select('username isOnline info').populate('info');
+    const users = await User.find().select('username isOnline info').populate({
+      path: 'info',
+      select: 'avatar fullName',
+    });
     const searchResult = users.map(async (user) => {
       if (this.searchByUser(user, value)) return user;
       if (!user.info) return null;
