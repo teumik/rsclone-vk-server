@@ -103,7 +103,6 @@ class PostsService {
       lastEdit: Date.now(),
     });
     await postData.save();
-    // const postDto = PostDto.getData(postData);
     return postData;
   };
 

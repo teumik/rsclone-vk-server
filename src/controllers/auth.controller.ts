@@ -55,7 +55,6 @@ class AuthController {
     try {
       const { link } = req.params;
       const userData = await authService.activation(link);
-      // res.redirect(`${SITE_URL}/user/${user.id}`);
       res.json({ status: 'Activation complete', userData });
     } catch (error) {
       next(error);
