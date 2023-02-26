@@ -7,8 +7,8 @@ router.post('/friends', userController.addFriend);
 router.put('/friends', userController.acceptFriend);
 router.delete('/friends', userController.removeFriends);
 router.get('/friends', userController.getFriends);
-router.get('/friends/incount', userController.getRequestCount);
-router.get('/friends/outcount', userController.getReciveCount);
+router.get('/friends/incomming', userController.getRequestCount);
+router.get('/friends/outcomming', userController.getReciveCount);
 router.get('/:id', userController.getUser);
 router.get('', userController.getAllUsers);
 
