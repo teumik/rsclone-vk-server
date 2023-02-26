@@ -91,10 +91,20 @@ class UserService {
   };
 
   getFriends = async (refreshToken: string) => {
-    const { friends } = await this.findCurrentUser(refreshToken);
-    const promiseData = friends.map((friend) => User.findById({ _id: friend.friendId }));
-    const friendsData = await Promise.all(promiseData);
-    return friendsData;
+    const user = await this.findCurrentUser(refreshToken);
+    await user.populate({
+      path: 'friends',
+      select: 'friendId',
+      populate: {
+        path: 'friendId',
+        select: 'username',
+        populate: {
+          path: 'info',
+          select: 'fullName avatar -_id',
+        },
+      },
+    });
+    return user.friends.map((el) => el.friendId);
   };
 
   getRequestCount = async (refreshToken: string) => {
