@@ -118,9 +118,9 @@ class UserService {
     const user = await this.findCurrentUser(refreshToken);
     await user.populate({
       path: 'outgoingRequest',
-      select: 'requester status -_id',
+      select: 'recipient status -_id',
       populate: {
-        path: 'requester',
+        path: 'recipient',
         select: 'username info -_id',
         populate: {
           path: 'info',
