@@ -21,8 +21,8 @@ class UserController {
   getRequestCount = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { refreshToken } = req.cookies;
-      const count = await userService.getRequestCount(refreshToken);
-      res.json(count);
+      const data = await userService.getRequestCount(refreshToken);
+      res.json(data);
     } catch (error) {
       next(error);
     }
@@ -31,8 +31,8 @@ class UserController {
   getReciveCount = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { refreshToken } = req.cookies;
-      const count = await userService.getReciveCount(refreshToken);
-      res.json(count);
+      const data = await userService.getReciveCount(refreshToken);
+      res.json(data);
     } catch (error) {
       next(error);
     }

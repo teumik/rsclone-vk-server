@@ -99,12 +99,36 @@ class UserService {
 
   getRequestCount = async (refreshToken: string) => {
     const user = await this.findCurrentUser(refreshToken);
-    return { count: user.pendingRequest.length };
+    await user.populate({
+      path: 'pendingRequest',
+      select: 'requester status -_id',
+      populate: {
+        path: 'requester',
+        select: 'username info -_id',
+        populate: {
+          path: 'info',
+          select: 'fullName avatar -_id',
+        },
+      },
+    });
+    return { id: user.id, incomming: user.pendingRequest };
   };
 
   getReciveCount = async (refreshToken: string) => {
     const user = await this.findCurrentUser(refreshToken);
-    return { count: user.outgoingRequest.length };
+    await user.populate({
+      path: 'outgoingRequest',
+      select: 'requester status -_id',
+      populate: {
+        path: 'requester',
+        select: 'username info -_id',
+        populate: {
+          path: 'info',
+          select: 'fullName avatar -_id',
+        },
+      },
+    });
+    return { id: user.id, outcomming: user.outgoingRequest };
   };
 
   removeFriends = async ({ friendId, username, refreshToken }: IUserAuthData) => {
