@@ -238,9 +238,12 @@ class UserService {
     }
     const userId = id || tokenData.user;
     const user = await User.findById({ _id: userId })
-      .populate('info posts')
-      .select('id username isOnline info');
-
+      .populate('posts')
+      .select('id username isOnline info')
+      .populate({
+        path: 'info',
+        select: '-fullName',
+      });
     if (!user) {
       throw ApiError.databaseError({
         code: 404,
