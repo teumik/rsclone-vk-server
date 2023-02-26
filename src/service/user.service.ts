@@ -114,7 +114,7 @@ class UserService {
       select: 'requester status -_id',
       populate: {
         path: 'requester',
-        select: 'username info -_id',
+        select: 'username info',
         populate: {
           path: 'info',
           select: 'fullName avatar -_id',
@@ -131,7 +131,7 @@ class UserService {
       select: 'recipient status -_id',
       populate: {
         path: 'recipient',
-        select: 'username info -_id',
+        select: 'username info',
         populate: {
           path: 'info',
           select: 'fullName avatar -_id',
