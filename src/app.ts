@@ -1,12 +1,11 @@
-import express, { Request } from 'express';
+import express from 'express';
 import { env } from 'process';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-import { createServer, request } from 'http';
-import { Server, Socket } from 'socket.io';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import multer from 'multer';
 import { parse } from 'cookie';
-import { Document } from 'mongoose';
 import authRouter from './router/auth.router';
 import userRouter from './router/user.router';
 import infoRouter from './router/info.router';
@@ -24,7 +23,6 @@ import chatsRouter from './router/chats.router';
 import ApiError from './utils/apiError';
 import tokenService from './service/token.service';
 import User from './models/user.model';
-import { IUserModel } from './service/auth.service';
 
 dotenv.config();
 const { DB_URL, PORT, WHITELIST } = env;
