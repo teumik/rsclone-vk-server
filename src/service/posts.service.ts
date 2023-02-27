@@ -333,8 +333,21 @@ class PostsService {
     const user = await this.findUser({ refreshToken, userId });
     const userPopulated = await user.populate({
       path: 'posts',
+      select: '-__v',
       options: {
         sort: { date: -1 },
+      },
+      populate: {
+        path: 'comments',
+        select: '-__v',
+        populate: {
+          path: 'user',
+          select: 'username info',
+          populate: {
+            path: 'info',
+            select: 'fullName avatar -_id',
+          },
+        },
       },
     });
     return userPopulated.posts;
