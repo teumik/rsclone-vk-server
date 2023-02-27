@@ -8,10 +8,11 @@ import PostDto from '../utils/postData.dto';
 import Info from '../models/info.model';
 import Likes from '../models/likes.model';
 import Comments from '../models/comments.model';
+import sockets from '../app';
 
 dotenv.config();
 
-interface IPosts {
+export interface IPosts {
   text: string;
   file?: string[];
 }
@@ -30,7 +31,7 @@ interface IEditPost extends IAddPost {
   postId: string;
 }
 
-interface IComment {
+export interface IComment {
   refreshToken: string;
   commentId: string;
   comment: string;
@@ -82,7 +83,19 @@ class PostsService {
     postId, refreshToken, userId, username, post,
   }: IEditPost) => {
     const user = await this.findUser({ refreshToken, userId, username });
-    const postData = await Post.findById(postId);
+    const postData = await Post.findById(postId)
+      .populate({
+        path: 'comments',
+        select: '-__v',
+        populate: {
+          path: 'user',
+          select: 'username info',
+          populate: {
+            path: 'info',
+            select: 'fullName avatar -_id',
+          },
+        },
+      });
     if (!postData) {
       throw ApiError.postError({
         code: 404,
@@ -229,6 +242,7 @@ class PostsService {
     });
     post.comments.push(comment.id);
     await post.save();
+    // sockets[0].emit('comment', { comment, post });
     return { comment, post };
   };
 
