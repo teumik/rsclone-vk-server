@@ -1,10 +1,12 @@
-import express from 'express';
+import express, { Request } from 'express';
 import { env } from 'process';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
+import { createServer, request } from 'http';
+import { Server, Socket } from 'socket.io';
 import multer from 'multer';
+import { parse } from 'cookie';
+import { Document } from 'mongoose';
 import authRouter from './router/auth.router';
 import userRouter from './router/user.router';
 import infoRouter from './router/info.router';
@@ -18,6 +20,11 @@ import settings from './utils/settings';
 import databaseController from './database/connectToDatabase';
 import accessMiddleware from './middlewares/access.middleware';
 import activateMiddleware from './middlewares/activate.middleware';
+import chatsRouter from './router/chats.router';
+import ApiError from './utils/apiError';
+import tokenService from './service/token.service';
+import User from './models/user.model';
+import { IUserModel } from './service/auth.service';
 
 dotenv.config();
 const { DB_URL, PORT, WHITELIST } = env;
@@ -42,6 +49,7 @@ app.use('/info', infoRouter);
 app.use('/search', searchRouter);
 app.use('/settings', settingsRouter);
 app.use('/posts', postsRouter);
+app.use('/chats', chatsRouter);
 app.use(loggerMiddleware);
 app.use(errorMiddleware);
 
@@ -49,7 +57,42 @@ app.post('/image_loader', upload.single('image'), async (req, res, next) => {
   res.json(req.file);
 });
 
-const io = new Server(server, {
+interface IOnline {
+  id: string;
+  online: boolean;
+}
+
+interface ISuccessConnect {
+  connection: boolean;
+}
+
+interface ServerToClientEvents {
+  online: (message: IOnline) => void;
+  successConnect: (message: ISuccessConnect) => void;
+}
+
+interface ClientToServerEvents {
+  login: (user: string) => void;
+  logout: (user: string) => void;
+  disconnect: () => void;
+
+}
+
+interface InterServerEvents {
+  example: () => void;
+}
+
+interface SocketData {
+  name: string;
+  age: number;
+}
+
+const io = new Server<
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
+  SocketData
+>(server, {
   cors: {
     origin: accessDomainList,
     credentials: true,
@@ -57,12 +100,83 @@ const io = new Server(server, {
   serveClient: false,
 });
 
-io.on('connection', (socket) => {
-  socket.on('login', (message) => {
-    console.log(message);
+const findUserByToken = async (refreshToken: string) => {
+  const tokenData = await tokenService.findRefreshToken(refreshToken);
+  if (!tokenData) {
+    throw ApiError.loginError({
+      code: 404,
+      type: 'NotFound',
+      message: 'Token not found',
+    });
+  }
+  const user = await User.findById({ _id: tokenData.user });
+  if (!user) {
+    throw ApiError.databaseError({
+      code: 404,
+      type: 'NotFound',
+      message: 'User not found',
+    });
+  }
+  return user;
+};
+
+io.use(async (socket, next) => {
+  const { cookie } = socket.handshake.headers;
+  if (!cookie) {
+    throw ApiError.loginError({
+      type: 'EmptyCookie',
+      message: 'Cookie is empty',
+    });
+  }
+  const { refreshToken } = parse(cookie);
+  if (!refreshToken) {
+    throw ApiError.loginError({
+      type: 'Unauthorized',
+      message: 'Refresh token not provided',
+    });
+  }
+  await findUserByToken(refreshToken);
+  next();
+});
+
+io.on('connection', async (socket) => {
+  const { roomId, userName } = socket.handshake.query;
+  const { cookie } = socket.handshake.headers;
+  if (!cookie) {
+    throw ApiError.loginError({
+      type: 'EmptyCookie',
+      message: 'Cookie is empty',
+    });
+  }
+  const { refreshToken } = parse(cookie);
+  const user = await findUserByToken(refreshToken);
+  if (user) {
+    socket.emit('successConnect', {
+      connection: true,
+    });
+  }
+  // console.log(roomId, userName);
+
+  socket.on('login', async (message) => {
+    if (!user.isOnline) {
+      user.isOnline = true;
+      await user.save();
+    }
+    socket.emit('online', { id: user.id, online: user.isOnline });
   });
-  socket.on('logout', (message) => {
-    console.log(message);
+  socket.on('logout', async (message) => {
+    if (user.isOnline) {
+      user.isOnline = false;
+      await user.save();
+    }
+    socket.emit('online', { id: user.id, online: user.isOnline });
+  });
+  socket.on('disconnect', async (message) => {
+    if (user.isOnline) {
+      user.isOnline = false;
+      await user.save();
+    }
+    socket.emit('online', { id: user.id, online: user.isOnline });
   });
 });
 
