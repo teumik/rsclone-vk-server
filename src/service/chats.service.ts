@@ -9,7 +9,7 @@ import Message from '../models/message.model';
 dotenv.config();
 
 interface BaseChat {
-  friendsList: string[];
+  members: string[];
   friendId: string;
   message: string;
   files: string[];
@@ -40,7 +40,7 @@ class ChatsService {
   };
 
   createChat = async ({
-    friendId, message, files, role, friendsList, refreshToken, title,
+    friendId, message, files, role, members, refreshToken, title,
   }: BaseChat) => {
     const user = await this.findCurrentUser(refreshToken);
     const existChat = await Chat.findOne({
@@ -62,7 +62,7 @@ class ChatsService {
       message,
     });
     const chatDocument = new Chat({
-      members: role === 'group' ? [user.id, ...friendsList] : [user.id, friendId],
+      members: role === 'group' ? [user.id, ...members] : [user.id, friendId],
       role,
     });
     messageDocument.chat = chatDocument.id;

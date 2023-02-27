@@ -11,11 +11,11 @@ class ChatsController {
   createChat = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
-        friendId, message, files, role, friendsList, title,
+        friendId, message, files, role, members, title,
       } = req.body;
       const { refreshToken } = req.cookies;
       const chatData = await chatsService.createChat({
-        friendId, message, files, role, refreshToken, friendsList, title,
+        friendId, message, files, role, refreshToken, members, title,
       });
       res.json(chatData);
     } catch (error) {
