@@ -11,7 +11,8 @@ class SearchController {
   searchUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { value } = req.body;
-      const users = await searchService.searchUsers(value);
+      const { refreshToken } = req.cookies;
+      const users = await searchService.searchUsers(value, refreshToken);
       res.json(users);
     } catch (error) {
       next(error);
