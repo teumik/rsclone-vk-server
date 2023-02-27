@@ -5,10 +5,8 @@ import tokenService from './token.service';
 import ApiError from '../utils/apiError';
 import Post from '../models/posts.model';
 import PostDto from '../utils/postData.dto';
-import Info from '../models/info.model';
 import Likes from '../models/likes.model';
 import Comments from '../models/comments.model';
-import sockets from '../app';
 
 dotenv.config();
 
