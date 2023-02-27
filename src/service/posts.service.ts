@@ -195,17 +195,14 @@ class PostsService {
     if (!text) return null;
     const user = await this.findUser({ refreshToken });
     const post = await Post.findById(postId).populate({
-      path: 'post',
+      path: 'comments',
+      select: '-__v',
       populate: {
-        path: 'comments',
-        select: '-__v',
+        path: 'user',
+        select: 'username info',
         populate: {
-          path: 'user',
-          select: 'username info',
-          populate: {
-            path: 'info',
-            select: 'fullName avatar -_id',
-          },
+          path: 'info',
+          select: 'fullName avatar -_id',
         },
       },
     });
@@ -232,7 +229,7 @@ class PostsService {
     });
     post.comments.push(comment.id);
     await post.save();
-    return comment;
+    return { comment, post };
   };
 
   editComment = async ({
