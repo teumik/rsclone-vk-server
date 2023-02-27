@@ -1,5 +1,5 @@
 import { env } from 'process';
-import { Schema } from 'mongoose';
+import { Schema, Types } from 'mongoose';
 import dotenv from 'dotenv';
 import User from '../models/user.model';
 import tokenService from './token.service';
@@ -9,7 +9,7 @@ import ApiError from '../utils/apiError';
 dotenv.config();
 
 interface IUserData {
-  friendId: Schema.Types.ObjectId;
+  friendId: string;
   username: string;
 }
 
@@ -18,12 +18,12 @@ interface IUserAuthData extends IUserData {
 }
 
 interface IFriendsValidate {
-  friendId: Schema.Types.ObjectId;
-  userId: Schema.Types.ObjectId;
+  friendId: Types.ObjectId;
+  userId: Types.ObjectId;
 }
 
 class UserService {
-  private findFriend = async ({ friendId, username }: IUserData) => {
+  private findFriend = async ({ friendId, username }: Partial<IUserData>) => {
     if (friendId) {
       const friendById = await User.findById({ _id: friendId });
       return friendById;
@@ -36,7 +36,14 @@ class UserService {
   };
 
   private findCurrentUser = async (refreshToken: string) => {
+    const payload = await tokenService.validateRefreshToken(refreshToken);
     const tokenData = await tokenService.findRefreshToken(refreshToken);
+    if (!payload) {
+      throw ApiError.loginError({
+        type: 'Unauthorized',
+        message: 'User unauthorized',
+      });
+    }
     if (!tokenData) {
       throw ApiError.loginError({
         code: 404,
@@ -222,12 +229,6 @@ class UserService {
   };
 
   getUser = async (refreshToken: string, id: string) => {
-    if (!refreshToken) {
-      throw ApiError.loginError({
-        type: 'Unauthorized',
-        message: 'User unauthorized',
-      });
-    }
     const payload = await tokenService.validateRefreshToken(refreshToken);
     const tokenData = await tokenService.findRefreshToken(refreshToken);
     if (!payload || !tokenData) {
@@ -236,13 +237,63 @@ class UserService {
         message: 'User unauthorized',
       });
     }
-    const userId = id || tokenData.user;
-    const user = await User.findById({ _id: userId })
-      .populate('posts')
-      .select('id username isOnline info')
+    const userData = tokenData.user;
+    if (!userData) {
+      throw ApiError.loginError({
+        code: 404,
+        type: 'NotFound',
+        message: 'Token not found',
+      });
+    }
+    if (id !== userData.toHexString()) {
+      const friendShip = await Friends.findOne({
+        $or: [
+          { requester: userData, recipient: id },
+          { requester: id, recipient: userData },
+        ],
+      });
+      if (!friendShip || !friendShip.status) {
+        const friendData = await User.findById({ _id: id })
+          .select('username isOnline info friends')
+          .populate({
+            path: 'info',
+            select: '-__v -_id',
+          })
+          .populate({
+            path: 'friends.friendId',
+            select: 'info username isOnline',
+            populate: {
+              path: 'info',
+              select: 'fullName -_id',
+            },
+          });
+        if (!friendData) {
+          throw ApiError.databaseError({
+            code: 404,
+            type: 'NotFound',
+            message: 'Other user not found',
+          });
+        }
+        return friendData;
+      }
+    }
+    const user = await User.findById({ _id: id })
+      .select('id username isOnline info posts friends')
+      .populate({
+        path: 'posts',
+        select: '-__v',
+      })
+      .populate({
+        path: 'friends.friendId',
+        select: 'info username isOnline',
+        populate: {
+          path: 'info',
+          select: 'fullName -_id',
+        },
+      })
       .populate({
         path: 'info',
-        select: '-fullName',
+        select: '-fullName -__v -_id',
       });
     if (!user) {
       throw ApiError.databaseError({
