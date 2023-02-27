@@ -163,6 +163,18 @@ class ApiError extends Error {
       name: 'ImageError',
     });
   }
+
+  static chatError({
+    status, code, message, type,
+  }: IApiError) {
+    return new ApiError({
+      status,
+      code: code || 400,
+      type,
+      message,
+      name: 'ChatError',
+    });
+  }
 }
 
 export default ApiError;
