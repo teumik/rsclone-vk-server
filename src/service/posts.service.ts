@@ -194,7 +194,21 @@ class PostsService {
   addComment = async ({ refreshToken, postId, comment: text }: Omit<IComment, 'commentId'>) => {
     if (!text) return null;
     const user = await this.findUser({ refreshToken });
-    const post = await Post.findById(postId);
+    const post = await Post.findById(postId).populate({
+      path: 'post',
+      populate: {
+        path: 'comments',
+        select: '-__v',
+        populate: {
+          path: 'user',
+          select: 'username info',
+          populate: {
+            path: 'info',
+            select: 'fullName avatar -_id',
+          },
+        },
+      },
+    });
     if (!post) {
       throw ApiError.postError({
         code: 404,
