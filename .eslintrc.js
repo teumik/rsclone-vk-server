@@ -68,7 +68,9 @@ module.exports = {
       TypeScript rules
     */
     '@typescript-eslint/no-explicit-any': 'error',
-    '@typescript-eslint/indent': ['error', 2],
+    '@typescript-eslint/indent': ['error', 2, {
+      ignoredNodes: ['TSTypeParameterInstantiation'],
+    }],
     '@typescript-eslint/no-shadow': ['error'],
     '@typescript-eslint/comma-dangle': ['error', {
       arrays: 'always-multiline',
