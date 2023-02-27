@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import searchController from '../controllers/search.controller';
 
-const router = Router();
+const searchRouter = Router();
 
-router.post('', searchController.searchUsers);
+searchRouter.post('', searchController.searchUsers);
 
-export default router;
+export default searchRouter;

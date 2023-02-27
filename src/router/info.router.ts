@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import infoController from '../controllers/info.controller';
 
-const router = Router();
+const infoRouter = Router();
 
-router.patch('', infoController.sendInfo);
-router.get('', infoController.getInfo);
+infoRouter.patch('', infoController.sendInfo);
+infoRouter.get('', infoController.getInfo);
 
-export default router;
+export default infoRouter;

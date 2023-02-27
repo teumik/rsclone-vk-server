@@ -3,12 +3,12 @@ import authController from '../controllers/auth.controller';
 import activateMiddleware from '../middlewares/activate.middleware';
 import refreshMiddleware from '../middlewares/refresh.middleware';
 
-const router = Router();
+const authRouter = Router();
 
-router.post('/registration', authController.registration);
-router.get('/logout', authController.logout);
-router.get('/activate/:link', authController.activation);
-router.post('/login', activateMiddleware, authController.login);
-router.get('/refresh', refreshMiddleware, authController.refresh);
+authRouter.post('/registration', authController.registration);
+authRouter.get('/logout', authController.logout);
+authRouter.get('/activate/:link', authController.activation);
+authRouter.post('/login', activateMiddleware, authController.login);
+authRouter.get('/refresh', refreshMiddleware, authController.refresh);
 
-export default router;
+export default authRouter;

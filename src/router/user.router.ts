@@ -1,15 +1,15 @@
 import { Router } from 'express';
 import userController from '../controllers/user.controller';
 
-const router = Router();
+const userRouter = Router();
 
-router.post('/friends', userController.addFriend);
-router.put('/friends', userController.acceptFriend);
-router.delete('/friends', userController.removeFriends);
-router.get('/friends', userController.getFriends);
-router.get('/friends/incomming', userController.getRequestCount);
-router.get('/friends/outcomming', userController.getReciveCount);
-router.get('/:id', userController.getUser);
-router.get('', userController.getAllUsers);
+userRouter.post('/friends', userController.addFriend);
+userRouter.put('/friends', userController.acceptFriend);
+userRouter.delete('/friends', userController.removeFriends);
+userRouter.get('/friends', userController.getFriends);
+userRouter.get('/friends/incomming', userController.getRequestCount);
+userRouter.get('/friends/outcomming', userController.getReciveCount);
+userRouter.get('/:id', userController.getUser);
+userRouter.get('', userController.getAllUsers);
 
-export default router;
+export default userRouter;

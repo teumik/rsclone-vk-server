@@ -1,22 +1,22 @@
 import { Router } from 'express';
 import postsController from '../controllers/posts.controller';
 
-const router = Router();
+const postsRouter = Router();
 
-router.post('', postsController.addPost);
-router.patch('', postsController.editPost);
-router.delete('', postsController.removePost);
-router.get('/likes', postsController.getLikes);
-router.post('/likes', postsController.addLike);
-router.delete('/likes', postsController.removeLike);
+postsRouter.post('', postsController.addPost);
+postsRouter.patch('', postsController.editPost);
+postsRouter.delete('', postsController.removePost);
+postsRouter.get('/likes', postsController.getLikes);
+postsRouter.post('/likes', postsController.addLike);
+postsRouter.delete('/likes', postsController.removeLike);
 
-router.post('/comments', postsController.addComment);
-router.get('/comments/:postId', postsController.getComments);
-router.patch('/comments', postsController.editComment);
-router.delete('/comments', postsController.removeComment);
+postsRouter.post('/comments', postsController.addComment);
+postsRouter.get('/comments/:postId', postsController.getComments);
+postsRouter.patch('/comments', postsController.editComment);
+postsRouter.delete('/comments', postsController.removeComment);
 
-router.get('/post/:postId', postsController.getPost);
-router.get('/user/:userId', postsController.getAllUserPost);
-router.get('', postsController.getAllPost);
+postsRouter.get('/post/:postId', postsController.getPost);
+postsRouter.get('/user/:userId', postsController.getAllUserPost);
+postsRouter.get('', postsController.getAllPost);
 
-export default router;
+export default postsRouter;
