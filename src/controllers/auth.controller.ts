@@ -1,4 +1,3 @@
-import { env } from 'process';
 import {
   CookieOptions, NextFunction, Request, Response
 } from 'express';
@@ -7,7 +6,6 @@ import authValidate, { IUser } from '../utils/authValidate';
 import authService from '../service/auth.service';
 
 dotenv.config();
-const { SITE_URL } = env;
 
 class AuthController {
   private getRefreshOptions = (time: number): CookieOptions => ({

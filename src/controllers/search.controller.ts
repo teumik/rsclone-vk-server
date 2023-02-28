@@ -1,4 +1,3 @@
-import { env } from 'process';
 import {
   NextFunction, Request, Response
 } from 'express';

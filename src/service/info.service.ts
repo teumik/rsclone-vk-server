@@ -1,4 +1,3 @@
-import { env } from 'process';
 import dotenv from 'dotenv';
 import { Schema } from 'mongoose';
 import tokenService from './token.service';

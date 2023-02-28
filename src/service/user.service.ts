@@ -1,5 +1,4 @@
-import { env } from 'process';
-import { Schema, Types } from 'mongoose';
+import { Types } from 'mongoose';
 import dotenv from 'dotenv';
 import User from '../models/user.model';
 import tokenService from './token.service';

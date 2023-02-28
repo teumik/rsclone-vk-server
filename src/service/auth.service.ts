@@ -122,7 +122,7 @@ class AuthService {
       path: 'info',
       select: 'fullName',
     });
-    const { tokens, userData } = await this.prepareData(user);
+    const { tokens } = await this.prepareData(user);
     return { ...tokens, user };
   };
 

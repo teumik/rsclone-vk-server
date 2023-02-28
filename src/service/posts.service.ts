@@ -1,4 +1,3 @@
-import { env } from 'process';
 import dotenv from 'dotenv';
 import User from '../models/user.model';
 import tokenService from './token.service';
@@ -240,7 +239,6 @@ class PostsService {
     });
     post.comments.push(comment.id);
     await post.save();
-    // sockets[0].emit('comment', { comment, post });
     return { comment, post };
   };
 

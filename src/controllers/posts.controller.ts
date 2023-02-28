@@ -1,4 +1,3 @@
-import { env } from 'process';
 import { NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import postsService from '../service/posts.service';
