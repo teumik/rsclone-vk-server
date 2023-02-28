@@ -29,12 +29,12 @@ class MailService {
     </div>
   `);
 
-  sendActivationMail = async (to: string, link: string) => {
+  sendActivationMail = async (to: string, link: string, fullName: string) => {
     await this.transporter.sendMail({
       from: SMPT_MAIL,
       to,
       subject: `Activate account on ${SITE_URL}`,
-      text: 'You must kill your bitch!',
+      text: `Hi, ${fullName}!`,
       html: this.getLayout(link),
     });
   };

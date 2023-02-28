@@ -65,7 +65,7 @@ class AuthService {
     });
     info.user = user.id;
     await info.save();
-    await mailService.sendActivationMail(email, `${SITE_URL}/auth/activate/${activationLink}`);
+    await mailService.sendActivationMail(email, `${SITE_URL}/auth/activate/${activationLink}`, `${firstName} ${lastName}`);
     const { tokens, userData } = await this.prepareData(user);
     return { ...tokens, userData };
   };
