@@ -3,7 +3,7 @@ import { env } from 'process';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import multer from 'multer';
 import { parse } from 'cookie';
 import { Document, Types } from 'mongoose';
@@ -24,10 +24,11 @@ import chatsRouter from './router/chats.router';
 import ApiError from './utils/apiError';
 import tokenService from './service/token.service';
 import User from './models/user.model';
-import Comments from './models/comments.model';
-import Post from './models/posts.model';
-import { IComment, IPosts } from './service/posts.service';
+import { IPosts } from './service/posts.service';
 import { IUser } from './utils/authValidate';
+import Chat from './models/chat.model';
+import Message from './models/message.model';
+import Post from './models/posts.model';
 
 dotenv.config();
 const { DB_URL, PORT, WHITELIST } = env;
@@ -73,7 +74,13 @@ interface ISuccessConnect {
   connection: boolean;
 }
 
-interface CommentMessage {
+interface IComment {
+  user: Types.ObjectId;
+  post: Types.ObjectId;
+  text?: string;
+}
+
+interface ICommentMessage {
   comment: {
     user: Types.ObjectId;
     post: Types.ObjectId;
@@ -82,19 +89,52 @@ interface CommentMessage {
   post: IPosts;
 }
 
+interface ChatMessage {
+  chatId: string;
+  message: string;
+}
+
+interface IPost {
+  user: Types.ObjectId;
+  date: Date;
+  text: string;
+  likes: Types.ObjectId[];
+  comments: Types.ObjectId[];
+  files: string[];
+  isEdit: boolean;
+  lastEdit?: Date;
+}
+
+interface ILike {
+  post: Types.ObjectId;
+  user: Types.ObjectId;
+}
+
+interface ILikeRemove {
+  like: ILike;
+  post: IPost;
+}
+
 interface ServerToClientEvents {
   online: (message: IOnline) => void;
-  successConnect: (message: ISuccessConnect) => void;
   error: (message: ApiError) => void;
-  comment: (message: CommentMessage) => void;
-  simple: (message: string) => void;
+  'add post': (postData: IPost) => void;
+  'edit post': (postData: IPost) => void;
+  'remove post': (postData: IPost) => void;
+  'add like': (likeData: ILike) => void;
+  'remove like': (likeData: ILikeRemove) => void;
+  'success connect': (message: ISuccessConnect) => void;
+  'add comment': (message: ICommentMessage) => void;
+  'edit comment': (message: IComment) => void;
+  'remove comment': (message: ICommentMessage) => void;
+  'chat message': (data: ChatMessage) => void;
 }
 
 interface ClientToServerEvents {
   login: (user: string) => void;
   logout: (user: string) => void;
   disconnect: () => void;
-
+  'chat message': (data: ChatMessage) => void;
 }
 
 interface InterServerEvents {
@@ -135,36 +175,39 @@ const findAccessToken = async (access: string) => {
   return userData;
 };
 
-const socketsMap = new Map();
+class OnlineUsers {
+  map: Map<string, string>;
+  constructor() {
+    this.map = new Map();
+  }
+}
+const onlineUsers = new OnlineUsers();
 
 io.on('connection', async (socket) => {
   socket.on('login', async (accessToken) => {
     const user = await findAccessToken(accessToken);
-    // socketsMap.set
     if (!user) return;
-    console.log(user.id);
-    console.log(socket.id);
-    console.log(socket.rooms);
     if (!user.isOnline) {
       user.isOnline = true;
       await user.save();
     }
-    console.log('login server side', { id: user.id, online: user.isOnline });
+    onlineUsers.map.set(user.id, socket.id);
     io.sockets.emit('online', { id: user.id, online: user.isOnline });
   });
+
   socket.on('logout', async () => {
     const { cookie } = socket.handshake.headers;
     const { refreshToken } = parse(cookie || '');
     const user = await findRefreshToken(refreshToken);
-    // const user = await findAccessToken(accessToken);
     if (!user) return;
     if (user.isOnline) {
       user.isOnline = false;
       await user.save();
     }
-    // console.log('logout server side', { id: user.id, online: user.isOnline });
+    onlineUsers.map.delete(user.id);
     io.sockets.emit('online', { id: user.id, online: user.isOnline });
   });
+
   socket.on('disconnect', async () => {
     const { cookie } = socket.handshake.headers;
     const { refreshToken } = parse(cookie || '');
@@ -174,11 +217,32 @@ io.on('connection', async (socket) => {
       user.isOnline = false;
       await user.save();
     }
-    // console.log('disconnect server side', { id: user.id, online: user.isOnline });
+    onlineUsers.map.delete(user.id);
     io.sockets.emit('online', { id: user.id, online: user.isOnline });
+  });
+
+  socket.on('chat message', async ({ chatId, message }) => {
+    const { cookie } = socket.handshake.headers;
+    const { refreshToken } = parse(cookie || '');
+    const user = await findRefreshToken(refreshToken);
+    const chat = await Chat.findById(chatId);
+    if (!user) return;
+    if (!chat) return;
+    const messageData = await Message.create({
+      chat: chat.id,
+      user: user.id,
+      message,
+    });
+    chat.messages.push(messageData.id);
+    await chat.save();
+    chat.members.forEach((member) => {
+      const recipient = onlineUsers.map.get(member.toHexString());
+      if (!recipient || member.toHexString() === user.id) return;
+      socket.to(recipient).emit('chat message', { chatId, message });
+    });
   });
 });
 
 server.listen(PORT || 5555, async () => { await databaseController.connectDatabase(DB_URL); });
 
-// export default sockets;
+export { onlineUsers, io };
