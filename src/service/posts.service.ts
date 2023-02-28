@@ -159,6 +159,14 @@ class PostsService {
     user.likes.push(like.id);
     await post.save();
     await user.save();
+    await like.populate({
+      path: 'user',
+      select: 'username info',
+      populate: {
+        path: 'info',
+        select: 'fullName avatar -_id',
+      },
+    });
     io.sockets.emit('add like', like);
     return like;
   };
@@ -186,14 +194,6 @@ class PostsService {
     await like.remove();
     await user.save();
     await post.save();
-    await user.populate({
-      path: 'user',
-      select: 'username info',
-      populate: {
-        path: 'info',
-        select: 'fullName avatar -_id',
-      },
-    });
     io.sockets.emit('remove like', { like, post });
     return { status: true, type: 'Remove', post };
   };
