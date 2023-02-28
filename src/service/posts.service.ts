@@ -359,7 +359,7 @@ class PostsService {
         sort: { date: -1 },
       },
       populate: {
-        path: 'comments',
+        path: 'comments likes',
         select: '-__v',
         populate: {
           path: 'user',
