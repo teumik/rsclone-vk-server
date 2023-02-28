@@ -194,9 +194,9 @@ class PostsService {
     await like.remove();
     await user.save();
     await post.save();
-    io.sockets.emit('remove like', { like, post });
+    io.sockets.emit('remove like', like);
     return {
-      status: true, type: 'Remove', like, post,
+      status: true, type: 'Remove', like,
     };
   };
 
