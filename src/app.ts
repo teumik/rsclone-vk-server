@@ -110,9 +110,9 @@ interface ILike {
   user: Types.ObjectId;
 }
 
-interface ILikeRemove {
-  like: ILike;
-  post: IPost;
+interface IVisitor {
+  userId: string;
+  visitorId: string;
 }
 
 interface ServerToClientEvents {
@@ -122,7 +122,7 @@ interface ServerToClientEvents {
   'edit post': (postData: IPost) => void;
   'remove post': (postData: IPost) => void;
   'add like': (likeData: ILike) => void;
-  'remove like': (likeData: ILikeRemove) => void;
+  'remove like': (likeData: ILike) => void;
   'success connect': (message: ISuccessConnect) => void;
   'add comment': (message: ICommentMessage) => void;
   'edit comment': (message: IComment) => void;
@@ -135,6 +135,8 @@ interface ClientToServerEvents {
   logout: (user: string) => void;
   disconnect: () => void;
   'chat message': (data: ChatMessage) => void;
+  'visit in': ({ userId, visitorId }: IVisitor) => void;
+  'visit out': ({ userId, visitorId }: IVisitor) => void;
 }
 
 interface InterServerEvents {
@@ -175,13 +177,32 @@ const findAccessToken = async (access: string) => {
   return userData;
 };
 
-class OnlineUsers {
-  map: Map<string, string>;
+class SessionState {
+  onlineUsers: Map<string, string>;
+  visitors: Map<string, string[]>;
   constructor() {
-    this.map = new Map();
+    this.onlineUsers = new Map();
+    this.visitors = new Map();
   }
+
+  setVisitor = (userId: string, visitorId: string) => {
+    const existVisitors = this.visitors.get(userId);
+    if (!existVisitors) return;
+    if (existVisitors.includes(visitorId)) return;
+    existVisitors.push(visitorId);
+    this.visitors.set(userId, existVisitors);
+  };
+
+  removeVisitor = (userId: string, visitorId: string) => {
+    const existVisitors = this.visitors.get(userId);
+    if (!existVisitors) return;
+    if (!existVisitors.includes(visitorId)) return;
+    existVisitors.filter((visitors) => visitors !== visitorId);
+    this.visitors.set(userId, existVisitors);
+  };
 }
-const onlineUsers = new OnlineUsers();
+
+const sessionState = new SessionState();
 
 io.on('connection', async (socket) => {
   socket.on('login', async (accessToken) => {
@@ -191,7 +212,7 @@ io.on('connection', async (socket) => {
       user.isOnline = true;
       await user.save();
     }
-    onlineUsers.map.set(user.id, socket.id);
+    sessionState.onlineUsers.set(user.id, socket.id);
     io.sockets.emit('online', { id: user.id, online: user.isOnline });
   });
 
@@ -204,7 +225,7 @@ io.on('connection', async (socket) => {
       user.isOnline = false;
       await user.save();
     }
-    onlineUsers.map.delete(user.id);
+    sessionState.onlineUsers.delete(user.id);
     io.sockets.emit('online', { id: user.id, online: user.isOnline });
   });
 
@@ -217,7 +238,7 @@ io.on('connection', async (socket) => {
       user.isOnline = false;
       await user.save();
     }
-    onlineUsers.map.delete(user.id);
+    sessionState.onlineUsers.delete(user.id);
     io.sockets.emit('online', { id: user.id, online: user.isOnline });
   });
 
@@ -236,13 +257,15 @@ io.on('connection', async (socket) => {
     chat.messages.push(messageData.id);
     await chat.save();
     chat.members.forEach((member) => {
-      const recipient = onlineUsers.map.get(member.toHexString());
+      const recipient = sessionState.onlineUsers.get(member.toHexString());
       if (!recipient || member.toHexString() === user.id) return;
       socket.to(recipient).emit('chat message', { chatId, message });
     });
   });
+
+  // socket.on('visit in', () => { });
 });
 
 server.listen(PORT || 5555, async () => { await databaseController.connectDatabase(DB_URL); });
 
-export { onlineUsers, io };
+export { sessionState, io };
