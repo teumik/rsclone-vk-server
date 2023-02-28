@@ -27,6 +27,7 @@ import User from './models/user.model';
 import Comments from './models/comments.model';
 import Post from './models/posts.model';
 import { IComment, IPosts } from './service/posts.service';
+import { IUser } from './utils/authValidate';
 
 dotenv.config();
 const { DB_URL, PORT, WHITELIST } = env;
@@ -59,6 +60,10 @@ app.post('/image_loader', upload.single('image'), async (req, res, next) => {
   res.json(req.file);
 });
 
+interface IUserStatus extends IUser {
+  isOnline: boolean;
+}
+
 interface IOnline {
   id: string;
   online: boolean;
@@ -82,6 +87,7 @@ interface ServerToClientEvents {
   successConnect: (message: ISuccessConnect) => void;
   error: (message: ApiError) => void;
   comment: (message: CommentMessage) => void;
+  simple: (message: string) => void;
 }
 
 interface ClientToServerEvents {
@@ -113,97 +119,66 @@ const io = new Server<
   serveClient: false,
 });
 
-// const findUserByToken = async (refreshToken: string) => {
-//   const tokenData = await tokenService.findRefreshToken(refreshToken);
-//   if (!tokenData) return null;
-//   const user = await User.findById({ _id: tokenData.user });
-//   if (!user) return null;
-//   return user;
-// };
+const findRefreshToken = async (refresh: string) => {
+  const tokenData = await tokenService.validateRefreshToken(refresh);
+  if (typeof tokenData === 'string') return null;
+  if (!tokenData) return null;
+  const userData = await User.findById(tokenData.id);
+  return userData;
+};
 
-// io.use(async (socket, next) => {
-//   const { cookie } = socket.handshake.headers;
-//   if (!cookie) {
-//     const error = ApiError.loginError({
-//       type: 'EmptyCookie',
-//       message: 'Cookie is empty',
-//     });
-//     socket.emit('error', error);
-//     return;
-//   }
-//   const { refreshToken } = parse(cookie);
-//   if (!refreshToken) {
-//     const error = ApiError.loginError({
-//       type: 'Unauthorized',
-//       message: 'Refresh token not provided',
-//     });
-//     socket.emit('error', error);
-//     return;
-//   }
-//   await findUserByToken(refreshToken);
-//   next();
-// });
+const findAccessToken = async (access: string) => {
+  const tokenData = await tokenService.validateAccessToken(access);
+  if (typeof tokenData === 'string') return null;
+  if (!tokenData) return null;
+  const userData = await User.findById(tokenData.id);
+  return userData;
+};
 
-const sockets: Socket<
-  ClientToServerEvents,
-  ServerToClientEvents,
-  InterServerEvents,
-  SocketData>[] = [];
+const socketsMap = new Map();
 
 io.on('connection', async (socket) => {
-  // const { roomId, userName } = socket.handshake.query;
-  socket.on('login', (message) => {
-    sockets.push(socket);
-    // const { cookie } = socket.handshake.headers;
-    // const { refreshToken } = parse(cookie || '');
-    // console.log({ refreshToken, message });
+  socket.on('login', async (accessToken) => {
+    const user = await findAccessToken(accessToken);
+    // socketsMap.set
+    if (!user) return;
+    console.log(user.id);
+    console.log(socket.id);
+    console.log(socket.rooms);
+    if (!user.isOnline) {
+      user.isOnline = true;
+      await user.save();
+    }
+    console.log('login server side', { id: user.id, online: user.isOnline });
+    io.sockets.emit('online', { id: user.id, online: user.isOnline });
   });
-  // console.log(sockets[0]);
-  // sockets[0].emit('comment', '12312s1s121212');
-  // if (!cookie) {
-  //   const error = ApiError.loginError({
-  //     type: 'EmptyCookie',
-  //     message: 'Cookie is empty',
-  //   });
-  //   socket.emit('error', error);
-  //   return;
-  // }
-  // const { refreshToken } = parse(cookie);
-  // const user = await findUserByToken(refreshToken);
-  // if (!user) return;
-  // if (user) {
-  //   socket.emit('successConnect', {
-  //     connection: true,
-  //   });
-  // }
-
-  // socket.on('login', async () => {
-  //   console.log(user.username);
-  //   if (!user.isOnline) {
-  //     user.isOnline = true;
-  //     await user.save();
-  //   }
-  //   console.log({ online: user.isOnline });
-  //   socket.emit('online', { id: user.id, online: user.isOnline });
-  // });
-  // socket.on('logout', async () => {
-  //   if (user.isOnline) {
-  //     user.isOnline = false;
-  //     await user.save();
-  //   }
-  //   console.log({ online: user.isOnline });
-  //   socket.emit('online', { id: user.id, online: user.isOnline });
-  // });
-  // socket.on('disconnect', async () => {
-  //   if (user.isOnline) {
-  //     user.isOnline = false;
-  //     await user.save();
-  //   }
-  //   console.log({ online: user.isOnline });
-  //   socket.emit('online', { id: user.id, online: user.isOnline });
-  // });
+  socket.on('logout', async () => {
+    const { cookie } = socket.handshake.headers;
+    const { refreshToken } = parse(cookie || '');
+    const user = await findRefreshToken(refreshToken);
+    // const user = await findAccessToken(accessToken);
+    if (!user) return;
+    if (user.isOnline) {
+      user.isOnline = false;
+      await user.save();
+    }
+    // console.log('logout server side', { id: user.id, online: user.isOnline });
+    io.sockets.emit('online', { id: user.id, online: user.isOnline });
+  });
+  socket.on('disconnect', async () => {
+    const { cookie } = socket.handshake.headers;
+    const { refreshToken } = parse(cookie || '');
+    const user = await findRefreshToken(refreshToken);
+    if (!user) return;
+    if (user.isOnline) {
+      user.isOnline = false;
+      await user.save();
+    }
+    // console.log('disconnect server side', { id: user.id, online: user.isOnline });
+    io.sockets.emit('online', { id: user.id, online: user.isOnline });
+  });
 });
 
 server.listen(PORT || 5555, async () => { await databaseController.connectDatabase(DB_URL); });
 
-export default sockets;
+// export default sockets;
