@@ -43,14 +43,14 @@ class PostsService {
         message: 'Refresh token not found',
       });
     }
+    if (userId) {
+      const userById = await User.findById({ _id: userId });
+      if (userById) return userById;
+    }
     const tokenData = await tokenService.findRefreshToken(refreshToken);
     if (tokenData) {
       const user = await User.findById({ _id: tokenData.user });
       if (user) return user;
-    }
-    if (userId) {
-      const userById = await User.findById({ _id: userId });
-      if (userById) return userById;
     }
     if (username) {
       const userByUsername = await User.findOne({ username });
