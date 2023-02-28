@@ -3,9 +3,10 @@ import { env } from 'process';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import multer from 'multer';
 import { parse } from 'cookie';
+import { Document, Types } from 'mongoose';
 import authRouter from './router/auth.router';
 import userRouter from './router/user.router';
 import infoRouter from './router/info.router';
@@ -23,6 +24,9 @@ import chatsRouter from './router/chats.router';
 import ApiError from './utils/apiError';
 import tokenService from './service/token.service';
 import User from './models/user.model';
+import Comments from './models/comments.model';
+import Post from './models/posts.model';
+import { IComment, IPosts } from './service/posts.service';
 
 dotenv.config();
 const { DB_URL, PORT, WHITELIST } = env;
@@ -64,9 +68,20 @@ interface ISuccessConnect {
   connection: boolean;
 }
 
+interface CommentMessage {
+  comment: {
+    user: Types.ObjectId;
+    post: Types.ObjectId;
+    text?: string;
+  };
+  post: IPosts;
+}
+
 interface ServerToClientEvents {
   online: (message: IOnline) => void;
   successConnect: (message: ISuccessConnect) => void;
+  error: (message: ApiError) => void;
+  comment: (message: CommentMessage) => void;
 }
 
 interface ClientToServerEvents {
@@ -98,84 +113,97 @@ const io = new Server<
   serveClient: false,
 });
 
-const findUserByToken = async (refreshToken: string) => {
-  const tokenData = await tokenService.findRefreshToken(refreshToken);
-  if (!tokenData) {
-    throw ApiError.loginError({
-      code: 404,
-      type: 'NotFound',
-      message: 'Token not found',
-    });
-  }
-  const user = await User.findById({ _id: tokenData.user });
-  if (!user) {
-    throw ApiError.databaseError({
-      code: 404,
-      type: 'NotFound',
-      message: 'User not found',
-    });
-  }
-  return user;
-};
+// const findUserByToken = async (refreshToken: string) => {
+//   const tokenData = await tokenService.findRefreshToken(refreshToken);
+//   if (!tokenData) return null;
+//   const user = await User.findById({ _id: tokenData.user });
+//   if (!user) return null;
+//   return user;
+// };
 
-io.use(async (socket, next) => {
-  const { cookie } = socket.handshake.headers;
-  if (!cookie) {
-    throw ApiError.loginError({
-      type: 'EmptyCookie',
-      message: 'Cookie is empty',
-    });
-  }
-  const { refreshToken } = parse(cookie);
-  if (!refreshToken) {
-    throw ApiError.loginError({
-      type: 'Unauthorized',
-      message: 'Refresh token not provided',
-    });
-  }
-  await findUserByToken(refreshToken);
-  next();
-});
+// io.use(async (socket, next) => {
+//   const { cookie } = socket.handshake.headers;
+//   if (!cookie) {
+//     const error = ApiError.loginError({
+//       type: 'EmptyCookie',
+//       message: 'Cookie is empty',
+//     });
+//     socket.emit('error', error);
+//     return;
+//   }
+//   const { refreshToken } = parse(cookie);
+//   if (!refreshToken) {
+//     const error = ApiError.loginError({
+//       type: 'Unauthorized',
+//       message: 'Refresh token not provided',
+//     });
+//     socket.emit('error', error);
+//     return;
+//   }
+//   await findUserByToken(refreshToken);
+//   next();
+// });
+
+const sockets: Socket<
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
+  SocketData>[] = [];
 
 io.on('connection', async (socket) => {
-  const { roomId, userName } = socket.handshake.query;
-  const { cookie } = socket.handshake.headers;
-  if (!cookie) {
-    throw ApiError.loginError({
-      type: 'EmptyCookie',
-      message: 'Cookie is empty',
-    });
-  }
-  const { refreshToken } = parse(cookie);
-  const user = await findUserByToken(refreshToken);
-  if (user) {
-    socket.emit('successConnect', {
-      connection: true,
-    });
-  }
-  // console.log(roomId, userName);
+  // const { roomId, userName } = socket.handshake.query;
+  socket.on('login', (message) => {
+    sockets.push(socket);
+    // const { cookie } = socket.handshake.headers;
+    // const { refreshToken } = parse(cookie || '');
+    // console.log({ refreshToken, message });
+  });
+  // console.log(sockets[0]);
+  // sockets[0].emit('comment', '12312s1s121212');
+  // if (!cookie) {
+  //   const error = ApiError.loginError({
+  //     type: 'EmptyCookie',
+  //     message: 'Cookie is empty',
+  //   });
+  //   socket.emit('error', error);
+  //   return;
+  // }
+  // const { refreshToken } = parse(cookie);
+  // const user = await findUserByToken(refreshToken);
+  // if (!user) return;
+  // if (user) {
+  //   socket.emit('successConnect', {
+  //     connection: true,
+  //   });
+  // }
 
-  socket.on('login', async (message) => {
-    if (!user.isOnline) {
-      user.isOnline = true;
-      await user.save();
-    }
-    socket.emit('online', { id: user.id, online: user.isOnline });
-  });
-  socket.on('logout', async (message) => {
-    if (user.isOnline) {
-      user.isOnline = false;
-      await user.save();
-    }
-    socket.emit('online', { id: user.id, online: user.isOnline });
-  });
-  socket.on('disconnect', async (message) => {
-    if (user.isOnline) {
-      user.isOnline = false;
-      await user.save();
-    }
-    socket.emit('online', { id: user.id, online: user.isOnline });
-  });
+  // socket.on('login', async () => {
+  //   console.log(user.username);
+  //   if (!user.isOnline) {
+  //     user.isOnline = true;
+  //     await user.save();
+  //   }
+  //   console.log({ online: user.isOnline });
+  //   socket.emit('online', { id: user.id, online: user.isOnline });
+  // });
+  // socket.on('logout', async () => {
+  //   if (user.isOnline) {
+  //     user.isOnline = false;
+  //     await user.save();
+  //   }
+  //   console.log({ online: user.isOnline });
+  //   socket.emit('online', { id: user.id, online: user.isOnline });
+  // });
+  // socket.on('disconnect', async () => {
+  //   if (user.isOnline) {
+  //     user.isOnline = false;
+  //     await user.save();
+  //   }
+  //   console.log({ online: user.isOnline });
+  //   socket.emit('online', { id: user.id, online: user.isOnline });
+  // });
 });
 
 server.listen(PORT || 5555, async () => { await databaseController.connectDatabase(DB_URL); });
+
+export default sockets;

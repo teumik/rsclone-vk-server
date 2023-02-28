@@ -1,4 +1,3 @@
-import { env } from 'process';
 import dotenv from 'dotenv';
 import ApiError from '../utils/apiError';
 import tokenService from './token.service';
@@ -220,14 +219,27 @@ class ChatsService {
     const user = await this.findCurrentUser(refreshToken);
     const chats = await Chat.find({
       members: user.id,
-    }).populate({
-      path: 'members',
-      select: 'username info',
-      populate: {
-        path: 'info',
-        select: 'fullName avatar -_id',
-      },
-    });
+    })
+      .populate({
+        path: 'members',
+        select: 'username info',
+        populate: {
+          path: 'info',
+          select: 'fullName avatar -_id',
+        },
+      })
+      .populate({
+        path: 'messages',
+        select: 'message user',
+        populate: {
+          path: 'user',
+          select: 'username info',
+          populate: {
+            path: 'info',
+            select: 'fullName avatar -_id',
+          },
+        },
+      });
     return chats;
   };
 }
