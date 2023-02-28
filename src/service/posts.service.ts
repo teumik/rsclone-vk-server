@@ -195,7 +195,9 @@ class PostsService {
     await user.save();
     await post.save();
     io.sockets.emit('remove like', { like, post });
-    return { status: true, type: 'Remove', post };
+    return {
+      status: true, type: 'Remove', like, post,
+    };
   };
 
   getLikes = async ({ refreshToken }: Pick<IEditPost, 'refreshToken'>) => {
