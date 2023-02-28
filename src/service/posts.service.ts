@@ -6,6 +6,7 @@ import Post from '../models/posts.model';
 import PostDto from '../utils/postData.dto';
 import Likes from '../models/likes.model';
 import Comments from '../models/comments.model';
+import { io } from '../app';
 
 dotenv.config();
 
@@ -73,6 +74,7 @@ class PostsService {
     });
     user.posts.push(postData.id);
     user.save();
+    io.sockets.emit('add post', postData);
     return postData;
   };
 
@@ -113,6 +115,7 @@ class PostsService {
       lastEdit: Date.now(),
     });
     await postData.save();
+    io.sockets.emit('edit post', postData);
     return postData;
   };
 
@@ -129,6 +132,7 @@ class PostsService {
     user.posts = user.posts.filter((post) => post.toHexString() !== postData.id);
     await user.save();
     await postData.remove();
+    io.sockets.emit('remove post', postData);
     return { status: true, type: 'Remove', postData };
   };
 
@@ -155,6 +159,7 @@ class PostsService {
     user.likes.push(like.id);
     await post.save();
     await user.save();
+    io.sockets.emit('add like', like);
     return like;
   };
 
@@ -181,6 +186,15 @@ class PostsService {
     await like.remove();
     await user.save();
     await post.save();
+    await user.populate({
+      path: 'user',
+      select: 'username info',
+      populate: {
+        path: 'info',
+        select: 'fullName avatar -_id',
+      },
+    });
+    io.sockets.emit('remove like', { like, post });
     return { status: true, type: 'Remove', post };
   };
 
@@ -239,6 +253,7 @@ class PostsService {
     });
     post.comments.push(comment.id);
     await post.save();
+    io.sockets.emit('add comment', { comment, post });
     return { comment, post };
   };
 
@@ -273,6 +288,7 @@ class PostsService {
     await comment.populate({
       path: 'post',
     });
+    io.sockets.emit('edit comment', comment);
     return comment;
   };
 
@@ -303,6 +319,7 @@ class PostsService {
     post.comments = post.comments.filter((item) => item.toHexString() !== commentId);
     await post.save();
     await comment.remove();
+    io.sockets.emit('remove comment', { comment, post });
     return { post, comment };
   };
 
