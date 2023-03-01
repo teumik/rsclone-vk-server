@@ -297,9 +297,3 @@ io.on('connection', async (socket) => {
 server.listen(PORT || 5555, async () => { await databaseController.connectDatabase(DB_URL); });
 
 export { sessionState, io };
-
-// const m = new Map();
-// m.set('a', 123);
-// m.set('c', 456);
-// m.set('b', 789);
-// console.log(Array.from(m.entries()));
