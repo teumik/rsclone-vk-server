@@ -295,7 +295,16 @@ class PostsService {
     });
     post.comments.push(comment.id);
     await post.save();
-    io.sockets.emit('add comment', { comment, post });
+    const postOwnerSocketId = sessionState.onlineUsers.get(post.user.toHexString());
+    if (postOwnerSocketId && post.user.toHexString() !== user.id) {
+      io.sockets.to(postOwnerSocketId).emit('add comment', { comment, post });
+    }
+    const observer = sessionState.visitors.get(post.user.toHexString());
+    if (observer) {
+      observer.forEach((visitor) => {
+        io.sockets.to(visitor.socketId).emit('add comment', { comment, post });
+      });
+    }
     return { comment, post };
   };
 
@@ -330,7 +339,12 @@ class PostsService {
     await comment.populate({
       path: 'post',
     });
-    io.sockets.emit('edit comment', comment);
+    const observer = sessionState.visitors.get(user.id);
+    if (observer) {
+      observer.forEach((visitor) => {
+        io.sockets.to(visitor.socketId).emit('edit comment', comment);
+      });
+    }
     return comment;
   };
 
@@ -361,7 +375,12 @@ class PostsService {
     post.comments = post.comments.filter((item) => item.toHexString() !== commentId);
     await post.save();
     await comment.remove();
-    io.sockets.emit('remove comment', { comment, post });
+    const observer = sessionState.visitors.get(user.id);
+    if (observer) {
+      observer.forEach((visitor) => {
+        io.sockets.to(visitor.socketId).emit('remove comment', { comment, post });
+      });
+    }
     return { post, comment };
   };
 
