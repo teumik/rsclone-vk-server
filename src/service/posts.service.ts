@@ -196,7 +196,6 @@ class PostsService {
     const observer = sessionState.visitors.get(post.user.toHexString());
     if (observer) {
       observer.forEach((visitor) => {
-        if (visitor.visitorId === user.id) return;
         io.sockets.to(visitor.socketId).emit('add like', like);
       });
     }
@@ -233,7 +232,6 @@ class PostsService {
     const observer = sessionState.visitors.get(post.user.toHexString());
     if (observer) {
       observer.forEach((visitor) => {
-        if (visitor.visitorId === user.id) return;
         io.sockets.to(visitor.socketId).emit('remove like', like);
       });
     }
