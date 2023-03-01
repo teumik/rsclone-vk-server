@@ -129,6 +129,10 @@ interface ServerToClientEvents {
   'edit comment': (message: IComment) => void;
   'remove comment': (message: ICommentMessage) => void;
   'chat message': (data: ChatMessage) => void;
+  'visit log': (data: [string, {
+    visitorId: string;
+    socketId: string;
+  }[]][]) => void;
 }
 
 interface ClientToServerEvents {
@@ -287,10 +291,12 @@ io.on('connection', async (socket) => {
 
   socket.on('visit in', ({ userId, visitorId }) => {
     sessionState.setVisitor({ userId, visitorId, socketId: socket.id });
+    socket.emit('visit log', Array.from(sessionState.visitors.entries()));
   });
 
   socket.on('visit out', ({ userId, visitorId }) => {
     sessionState.removeVisitor({ userId, visitorId });
+    socket.emit('visit log', Array.from(sessionState.visitors.entries()));
   });
 });
 
