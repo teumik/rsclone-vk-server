@@ -189,7 +189,12 @@ class PostsService {
         select: 'fullName avatar -_id',
       },
     });
-    io.sockets.emit('add like', like);
+    const observer = sessionState.visitors.get(user.id);
+    if (observer) {
+      observer.forEach((visitor) => {
+        io.sockets.to(visitor.socketId).emit('add like', like);
+      });
+    }
     return like;
   };
 
@@ -216,7 +221,12 @@ class PostsService {
     await like.remove();
     await user.save();
     await post.save();
-    io.sockets.emit('remove like', like);
+    const observer = sessionState.visitors.get(user.id);
+    if (observer) {
+      observer.forEach((visitor) => {
+        io.sockets.to(visitor.socketId).emit('remove like', like);
+      });
+    }
     return {
       status: true, type: 'Remove', like,
     };
