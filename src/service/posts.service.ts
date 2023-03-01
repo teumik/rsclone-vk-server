@@ -189,9 +189,10 @@ class PostsService {
         select: 'fullName avatar -_id',
       },
     });
-    const observer = sessionState.visitors.get(user.id);
+    const observer = sessionState.visitors.get(post.user.toHexString());
     if (observer) {
       observer.forEach((visitor) => {
+        if (visitor.visitorId === user.id) return;
         io.sockets.to(visitor.socketId).emit('add like', like);
       });
     }
@@ -221,9 +222,10 @@ class PostsService {
     await like.remove();
     await user.save();
     await post.save();
-    const observer = sessionState.visitors.get(user.id);
+    const observer = sessionState.visitors.get(post.user.toHexString());
     if (observer) {
       observer.forEach((visitor) => {
+        if (visitor.visitorId === user.id) return;
         io.sockets.to(visitor.socketId).emit('remove like', like);
       });
     }
