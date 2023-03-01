@@ -189,6 +189,10 @@ class PostsService {
         select: 'fullName avatar -_id',
       },
     });
+    const postOwnerSocketId = sessionState.onlineUsers.get(post.user.toHexString());
+    if (postOwnerSocketId) {
+      io.sockets.to(postOwnerSocketId).emit('add like', like);
+    }
     const observer = sessionState.visitors.get(post.user.toHexString());
     if (observer) {
       observer.forEach((visitor) => {
@@ -222,6 +226,10 @@ class PostsService {
     await like.remove();
     await user.save();
     await post.save();
+    const postOwnerSocketId = sessionState.onlineUsers.get(post.user.toHexString());
+    if (postOwnerSocketId) {
+      io.sockets.to(postOwnerSocketId).emit('remove like', like);
+    }
     const observer = sessionState.visitors.get(post.user.toHexString());
     if (observer) {
       observer.forEach((visitor) => {
