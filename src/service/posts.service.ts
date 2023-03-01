@@ -299,6 +299,7 @@ class PostsService {
     });
     post.comments.push(comment.id);
     await post.save();
+    io.sockets.emit('add comment', { comment, post });
     const postOwnerSocketId = sessionState.onlineUsers.get(post.user.toHexString());
     if (postOwnerSocketId && post.user.toHexString() !== user.id) {
       io.sockets.to(postOwnerSocketId).emit('add comment', { comment, post });
