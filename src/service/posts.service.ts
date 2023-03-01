@@ -191,11 +191,14 @@ class PostsService {
     });
     const postOwnerSocketId = sessionState.onlineUsers.get(post.user.toHexString());
     if (postOwnerSocketId && post.user.toHexString() !== user.id) {
+      console.log('asds');
+
       io.sockets.to(postOwnerSocketId).emit('add like', like);
     }
     const observer = sessionState.visitors.get(post.user.toHexString());
     if (observer) {
       observer.forEach((visitor) => {
+        if (visitor.visitorId === user.id) return;
         io.sockets.to(visitor.socketId).emit('add like', like);
       });
     }
@@ -232,6 +235,7 @@ class PostsService {
     const observer = sessionState.visitors.get(post.user.toHexString());
     if (observer) {
       observer.forEach((visitor) => {
+        if (visitor.visitorId === user.id) return;
         io.sockets.to(visitor.socketId).emit('remove like', like);
       });
     }
