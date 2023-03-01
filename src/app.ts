@@ -6,7 +6,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import multer from 'multer';
 import { parse } from 'cookie';
-import { Document, Types } from 'mongoose';
+import { Document, Schema, Types } from 'mongoose';
 import authRouter from './router/auth.router';
 import userRouter from './router/user.router';
 import infoRouter from './router/info.router';
@@ -39,8 +39,8 @@ const app = express();
 const upload = multer();
 const server = createServer(app);
 
-app.use(express.json({ limit: '5mb', type: 'application/json' }));
-app.use(express.urlencoded({ limit: '5mb', extended: true }));
+app.use(express.json({ limit: '1.2mb', type: 'application/json' }));
+app.use(express.urlencoded({ limit: '1.2mb', extended: true }));
 app.use(cookieParser());
 app.use(corsMiddleware);
 app.get('/', (req, res) => res.send(greetingMessage));
@@ -113,6 +113,7 @@ interface ILike {
 interface IVisitor {
   userId: string;
   visitorId: string;
+  socketId?: string;
 }
 
 interface ServerToClientEvents {
@@ -179,26 +180,45 @@ const findAccessToken = async (access: string) => {
 
 class SessionState {
   onlineUsers: Map<string, string>;
-  visitors: Map<string, string[]>;
+  visitors: Map<string, {
+    visitorId: string;
+    socketId: string;
+  }[]>;
+
   constructor() {
     this.onlineUsers = new Map();
     this.visitors = new Map();
   }
 
-  setVisitor = (userId: string, visitorId: string) => {
-    const existVisitors = this.visitors.get(userId);
-    if (!existVisitors) return;
-    if (existVisitors.includes(visitorId)) return;
-    existVisitors.push(visitorId);
+  setVisitor = ({ userId, visitorId, socketId }: IVisitor) => {
+    if (userId === visitorId) return;
+    if (!socketId) return;
+    const existVisitors = this.visitors.get(userId) || [];
+    if (existVisitors.some((el) => el.visitorId === visitorId)) return;
+    existVisitors.push({ visitorId, socketId });
     this.visitors.set(userId, existVisitors);
   };
 
-  removeVisitor = (userId: string, visitorId: string) => {
-    const existVisitors = this.visitors.get(userId);
+  removeVisitor = ({ userId, visitorId }: IVisitor) => {
+    let existVisitors = this.visitors.get(userId);
     if (!existVisitors) return;
-    if (!existVisitors.includes(visitorId)) return;
-    existVisitors.filter((visitors) => visitors !== visitorId);
+    if (!existVisitors.some((el) => el.visitorId === visitorId)) return;
+    existVisitors = existVisitors.filter((visitors) => visitors.visitorId !== visitorId);
+    if (!existVisitors.length) {
+      this.visitors.delete(userId);
+      return;
+    }
     this.visitors.set(userId, existVisitors);
+  };
+
+  removeByVisitor = (visitorId: string) => {
+    Array.from(this.visitors.entries()).forEach((visitor) => {
+      visitor[1].forEach((el) => {
+        if (el.visitorId === visitorId) {
+          this.removeVisitor({ userId: visitor[0], visitorId });
+        }
+      });
+    });
   };
 }
 
@@ -226,6 +246,7 @@ io.on('connection', async (socket) => {
       await user.save();
     }
     sessionState.onlineUsers.delete(user.id);
+    sessionState.removeByVisitor(user.id);
     io.sockets.emit('online', { id: user.id, online: user.isOnline });
   });
 
@@ -239,6 +260,7 @@ io.on('connection', async (socket) => {
       await user.save();
     }
     sessionState.onlineUsers.delete(user.id);
+    sessionState.removeByVisitor(user.id);
     io.sockets.emit('online', { id: user.id, online: user.isOnline });
   });
 
@@ -263,9 +285,21 @@ io.on('connection', async (socket) => {
     });
   });
 
-  // socket.on('visit in', () => { });
+  socket.on('visit in', ({ userId, visitorId }) => {
+    sessionState.setVisitor({ userId, visitorId, socketId: socket.id });
+  });
+
+  socket.on('visit out', ({ userId, visitorId }) => {
+    sessionState.removeVisitor({ userId, visitorId });
+  });
 });
 
 server.listen(PORT || 5555, async () => { await databaseController.connectDatabase(DB_URL); });
 
 export { sessionState, io };
+
+// const m = new Map();
+// m.set('a', 123);
+// m.set('c', 456);
+// m.set('b', 789);
+// console.log(Array.from(m.entries()));

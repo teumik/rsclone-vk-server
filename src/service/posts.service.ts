@@ -6,7 +6,7 @@ import Post from '../models/posts.model';
 import PostDto from '../utils/postData.dto';
 import Likes from '../models/likes.model';
 import Comments from '../models/comments.model';
-import { io } from '../app';
+import { io, sessionState } from '../app';
 
 dotenv.config();
 
@@ -68,13 +68,25 @@ class PostsService {
     refreshToken, userId, username, post,
   }: IAddPost) => {
     const user = await this.findUser({ refreshToken, userId, username });
+    if (!user) {
+      throw ApiError.loginError({
+        code: 404,
+        type: 'NotFound',
+        message: 'User not found',
+      });
+    }
     const postData = await Post.create({
       user: user.id,
       ...post,
     });
     user.posts.push(postData.id);
-    user.save();
-    io.sockets.emit('add post', postData);
+    await user.save();
+    const observer = sessionState.visitors.get(user.id);
+    if (observer) {
+      observer.forEach((visitor) => {
+        io.sockets.to(visitor.socketId).emit('add post', postData);
+      });
+    }
     return postData;
   };
 
@@ -115,7 +127,12 @@ class PostsService {
       lastEdit: Date.now(),
     });
     await postData.save();
-    io.sockets.emit('edit post', postData);
+    const observer = sessionState.visitors.get(user.id);
+    if (observer) {
+      observer.forEach((visitor) => {
+        io.sockets.to(visitor.socketId).emit('edit post', postData);
+      });
+    }
     return postData;
   };
 
@@ -132,7 +149,12 @@ class PostsService {
     user.posts = user.posts.filter((post) => post.toHexString() !== postData.id);
     await user.save();
     await postData.remove();
-    io.sockets.emit('remove post', postData);
+    const observer = sessionState.visitors.get(user.id);
+    if (observer) {
+      observer.forEach((visitor) => {
+        io.sockets.to(visitor.socketId).emit('remove post', postData);
+      });
+    }
     return { status: true, type: 'Remove', postData };
   };
 
