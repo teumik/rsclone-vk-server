@@ -273,7 +273,34 @@ class UserService {
             message: 'Other user not found',
           });
         }
-        return friendData;
+        const friendsList = await User.findById({ _id: id })
+          .select('friends outgoingRequest pendingRequest')
+          .populate({
+            path: 'outgoingRequest pendingRequest',
+          });
+        if (!friendsList) {
+          throw ApiError.friendError({
+            code: 404,
+            type: 'NotFound',
+            message: 'User not found',
+          });
+        }
+        if (friendsList.friends.some((el) => el.friendId?.toHexString() === friendData.id)) {
+          return { user: friendData, friendStatus: 0 };
+        }
+        const { outgoingRequest } = friendsList;
+        if (outgoingRequest.some((el) => (
+          JSON.parse(JSON.stringify(el)).recipient === friendData.id
+        ))) {
+          return { user: friendData, friendStatus: 1 };
+        }
+        const { pendingRequest } = friendsList;
+        if (pendingRequest.some((el) => (
+          JSON.parse(JSON.stringify(el)).requester === friendData.id
+        ))) {
+          return { user: friendData, friendStatus: 2 };
+        }
+        return { user: friendData };
       }
     }
     const user = await User.findById({ _id: id })
@@ -301,7 +328,34 @@ class UserService {
         message: 'User not found',
       });
     }
-    return user;
+    const friendsList = await User.findById({ _id: id })
+      .select('friends outgoingRequest pendingRequest')
+      .populate({
+        path: 'outgoingRequest pendingRequest',
+      });
+    if (!friendsList) {
+      throw ApiError.friendError({
+        code: 404,
+        type: 'NotFound',
+        message: 'User not found',
+      });
+    }
+    if (friendsList.friends.some((el) => el.friendId?.toHexString() === user.id)) {
+      return { user, friendStatus: 0 };
+    }
+    const { outgoingRequest } = friendsList;
+    if (outgoingRequest.some((el) => (
+      JSON.parse(JSON.stringify(el)).recipient === user.id
+    ))) {
+      return { user, friendStatus: 1 };
+    }
+    const { pendingRequest } = friendsList;
+    if (pendingRequest.some((el) => (
+      JSON.parse(JSON.stringify(el)).requester === user.id
+    ))) {
+      return { user, friendStatus: 2 };
+    }
+    return { user };
   };
 
   getAllUsers = async () => {
