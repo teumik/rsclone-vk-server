@@ -90,9 +90,10 @@ class UserService {
 
   private hasExistRequest = async ({ userId, friendId }: IFriendsValidate) => {
     const existFriends = await Friends.findOne({
-      requester: userId, recipient: friendId,
-    }) || await Friends.findOne({
-      recipient: userId, requester: friendId,
+      $or: [
+        { requester: userId, recipient: friendId },
+        { recipient: userId, requester: friendId },
+      ],
     });
     return existFriends;
   };
