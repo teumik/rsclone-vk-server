@@ -158,14 +158,22 @@ class UserService {
         message: 'Request does not exist',
       });
     }
-
     user.outgoingRequest = user.outgoingRequest.filter((el) => (
+      el.toHexString() !== existRequest.id
+    ));
+    user.pendingRequest = user.pendingRequest.filter((el) => (
+      el.toHexString() !== existRequest.id
+    ));
+    friend.outgoingRequest = friend.outgoingRequest.filter((el) => (
       el.toHexString() !== existRequest.id
     ));
     friend.pendingRequest = friend.pendingRequest.filter((el) => (
       el.toHexString() !== existRequest.id
     ));
-
+    user.pendingRequest.push(existRequest.id);
+    friend.outgoingRequest.push(existRequest.id);
+    user.friends = user.friends.filter((el) => el.friendId?.toHexString() !== friendId);
+    friend.friends = friend.friends.filter((el) => el.friendId?.toHexString() !== friendId);
     await existRequest.remove();
     await friend.save();
     await user.save();
