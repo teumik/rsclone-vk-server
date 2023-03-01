@@ -190,6 +190,7 @@ class PostsService {
       },
     });
     const postOwnerSocketId = sessionState.onlineUsers.get(post.user.toHexString());
+    io.sockets.emit('add like', like);
     if (postOwnerSocketId && post.user.toHexString() !== user.id) {
       console.log('asds');
 
@@ -228,6 +229,7 @@ class PostsService {
     await like.remove();
     await user.save();
     await post.save();
+    io.sockets.emit('remove like', like);
     const postOwnerSocketId = sessionState.onlineUsers.get(post.user.toHexString());
     if (postOwnerSocketId && post.user.toHexString() !== user.id) {
       io.sockets.to(postOwnerSocketId).emit('remove like', like);
