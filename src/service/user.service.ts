@@ -4,6 +4,7 @@ import User from '../models/user.model';
 import tokenService from './token.service';
 import Friends from '../models/friends.model';
 import ApiError from '../utils/apiError';
+import { IUserModel } from './auth.service';
 
 dotenv.config();
 
@@ -227,6 +228,37 @@ class UserService {
     return existRequest;
   };
 
+  private getFriendStatus = async (user: IUserModel, id: string) => {
+    const friendsList = await User.findById({ _id: id })
+      .select('friends outgoingRequest pendingRequest')
+      .populate({
+        path: 'outgoingRequest pendingRequest',
+      });
+    if (!friendsList) {
+      throw ApiError.friendError({
+        code: 404,
+        type: 'NotFound',
+        message: 'User not found',
+      });
+    }
+    if (friendsList.friends.some((el) => el.friendId?.toHexString() === user.id)) {
+      return { user, friendStatus: 0 };
+    }
+    const { outgoingRequest } = friendsList;
+    if (outgoingRequest.some((el) => (
+      JSON.parse(JSON.stringify(el)).recipient === user.id
+    ))) {
+      return { user, friendStatus: 1 };
+    }
+    const { pendingRequest } = friendsList;
+    if (pendingRequest.some((el) => (
+      JSON.parse(JSON.stringify(el)).requester === user.id
+    ))) {
+      return { user, friendStatus: 2 };
+    }
+    return { user };
+  };
+
   getUser = async (refreshToken: string, id: string) => {
     const payload = await tokenService.validateRefreshToken(refreshToken);
     const tokenData = await tokenService.findRefreshToken(refreshToken);
@@ -273,34 +305,8 @@ class UserService {
             message: 'Other user not found',
           });
         }
-        const friendsList = await User.findById({ _id: id })
-          .select('friends outgoingRequest pendingRequest')
-          .populate({
-            path: 'outgoingRequest pendingRequest',
-          });
-        if (!friendsList) {
-          throw ApiError.friendError({
-            code: 404,
-            type: 'NotFound',
-            message: 'User not found',
-          });
-        }
-        if (friendsList.friends.some((el) => el.friendId?.toHexString() === friendData.id)) {
-          return { user: friendData, friendStatus: 0 };
-        }
-        const { outgoingRequest } = friendsList;
-        if (outgoingRequest.some((el) => (
-          JSON.parse(JSON.stringify(el)).recipient === friendData.id
-        ))) {
-          return { user: friendData, friendStatus: 1 };
-        }
-        const { pendingRequest } = friendsList;
-        if (pendingRequest.some((el) => (
-          JSON.parse(JSON.stringify(el)).requester === friendData.id
-        ))) {
-          return { user: friendData, friendStatus: 2 };
-        }
-        return { user: friendData };
+        const data = await this.getFriendStatus(friendData, userData.toHexString());
+        return data;
       }
     }
     const user = await User.findById({ _id: id })
@@ -328,34 +334,8 @@ class UserService {
         message: 'User not found',
       });
     }
-    const friendsList = await User.findById({ _id: id })
-      .select('friends outgoingRequest pendingRequest')
-      .populate({
-        path: 'outgoingRequest pendingRequest',
-      });
-    if (!friendsList) {
-      throw ApiError.friendError({
-        code: 404,
-        type: 'NotFound',
-        message: 'User not found',
-      });
-    }
-    if (friendsList.friends.some((el) => el.friendId?.toHexString() === user.id)) {
-      return { user, friendStatus: 0 };
-    }
-    const { outgoingRequest } = friendsList;
-    if (outgoingRequest.some((el) => (
-      JSON.parse(JSON.stringify(el)).recipient === user.id
-    ))) {
-      return { user, friendStatus: 1 };
-    }
-    const { pendingRequest } = friendsList;
-    if (pendingRequest.some((el) => (
-      JSON.parse(JSON.stringify(el)).requester === user.id
-    ))) {
-      return { user, friendStatus: 2 };
-    }
-    return { user };
+    const data = await this.getFriendStatus(user, userData.toHexString());
+    return data;
   };
 
   getAllUsers = async () => {
