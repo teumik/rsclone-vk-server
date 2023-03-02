@@ -81,6 +81,7 @@ interface ChatMessage {
   user?: string;
   chatId: string;
   message: string;
+  messageId: string;
 }
 
 interface IPost {
@@ -130,7 +131,7 @@ interface ServerToClientEvents {
   'add comment': (message: ICommentMessage) => void;
   'edit comment': (message: IComment) => void;
   'remove comment': (message: ICommentMessage) => void;
-  'chat message': (data: ChatMessage) => void;
+  'chat message on': (data: ChatMessage) => void;
   'add friend': (data: IExistRequest) => void;
   'accept friend': (data: IExistRequest) => void;
   'remove friend': (data: IExistRequest) => void;
@@ -145,7 +146,7 @@ interface ClientToServerEvents {
   login: (user: string) => void;
   logout: (user: string) => void;
   disconnect: () => void;
-  'chat message': (data: ChatMessage) => void;
+  'chat message emit': (data: ChatMessage) => void;
   'visit in': ({ userId, visitorId }: IVisitor) => void;
   'visit out': ({ userId, visitorId }: IVisitor) => void;
 }
@@ -274,7 +275,7 @@ io.on('connection', async (socket) => {
     io.sockets.emit('online', { id: user.id, online: user.isOnline });
   });
 
-  socket.on('chat message', async ({ chatId, message }) => {
+  socket.on('chat message emit', async ({ chatId, message }) => {
     const { cookie } = socket.handshake.headers;
     const { refreshToken } = parse(cookie || '');
     const user = await findRefreshToken(refreshToken);
@@ -288,12 +289,12 @@ io.on('connection', async (socket) => {
     });
     chat.messages.push(messageData.id);
     await chat.save();
-    io.sockets.emit('chat message', { user: user.id, chatId, message });
     chat.members.forEach((member) => {
       const recipient = sessionState.onlineUsers.get(member.toHexString());
-      console.log(member, recipient);
       if (!recipient || member.toHexString() === user.id) return;
-      socket.to(recipient).emit('chat message', { user: user.id, chatId, message });
+      socket.to(recipient).emit('chat message on', {
+        user: user.id, chatId, message, messageId: messageData.id,
+      });
     });
   });
 
