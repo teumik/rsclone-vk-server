@@ -244,6 +244,7 @@ io.on('connection', async (socket) => {
       await user.save();
     }
     sessionState.onlineUsers.set(user.id, socket.id);
+    console.log(user.id, socket.id, 'socket ID');
     io.sockets.emit('online', { id: user.id, online: user.isOnline });
   });
 
@@ -294,6 +295,9 @@ io.on('connection', async (socket) => {
       socket.to(recipient || '').emit('chat message on', {
         user: user.id, chatId, message, messageId: messageData.id,
       });
+    });
+    socket.emit('chat message on', {
+      user: user.id, chatId, message, messageId: messageData.id,
     });
   });
 
