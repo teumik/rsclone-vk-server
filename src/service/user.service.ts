@@ -5,6 +5,7 @@ import tokenService from './token.service';
 import Friends from '../models/friends.model';
 import ApiError from '../utils/apiError';
 import { IUserModel } from './auth.service';
+import { io, sessionState } from '../app';
 
 dotenv.config();
 
@@ -159,6 +160,9 @@ class UserService {
         message: 'Request does not exist',
       });
     }
+    // console.log(user.outgoingRequest[0].toHexString());
+    // console.log(existRequest.id);
+
     user.outgoingRequest = user.outgoingRequest.filter((el) => (
       el.toHexString() !== existRequest.id
     ));
@@ -171,13 +175,19 @@ class UserService {
     friend.pendingRequest = friend.pendingRequest.filter((el) => (
       el.toHexString() !== existRequest.id
     ));
-    user.pendingRequest.push(existRequest.id);
-    friend.outgoingRequest.push(existRequest.id);
+    // user.pendingRequest.push(existRequest.id);
+    // friend.outgoingRequest.push(existRequest.id);
     user.friends = user.friends.filter((el) => el.friendId?.toHexString() !== friendId);
-    friend.friends = friend.friends.filter((el) => el.friendId?.toHexString() !== friendId);
+    friend.friends = friend.friends.filter((el) => el.friendId?.toHexString() !== user.id);
     await existRequest.remove();
     await friend.save();
     await user.save();
+    // const observer = sessionState.visitors.get(user.id);
+    // if (observer) {
+    //   observer.forEach((visitor) => {
+    //     io.sockets.to(visitor.socketId).emit('remove friend', existRequest);
+    //   });
+    // }
     return { status: true, type: 'Remove friend request' };
   };
 
@@ -199,6 +209,12 @@ class UserService {
     friend.pendingRequest.push(friendData.id);
     await user.save();
     await friend.save();
+    // const observer = sessionState.visitors.get(user.id);
+    // if (observer) {
+    //   observer.forEach((visitor) => {
+    //     io.sockets.to(visitor.socketId).emit('add friend', { user, friend });
+    //   });
+    // }
     return { user, friend };
   };
 
@@ -234,6 +250,12 @@ class UserService {
     await friend.save();
     await user.save();
     await existRequest.save();
+    // const observer = sessionState.visitors.get(user.id);
+    // if (observer) {
+    //   observer.forEach((visitor) => {
+    //     io.sockets.to(visitor.socketId).emit('accept friend', existRequest);
+    //   });
+    // }
     return existRequest;
   };
 
