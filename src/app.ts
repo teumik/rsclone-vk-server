@@ -78,6 +78,7 @@ interface ICommentMessage {
 }
 
 interface ChatMessage {
+  user?: string;
   chatId: string;
   message: string;
 }
@@ -282,7 +283,7 @@ io.on('connection', async (socket) => {
     chat.members.forEach((member) => {
       const recipient = sessionState.onlineUsers.get(member.toHexString());
       if (!recipient || member.toHexString() === user.id) return;
-      socket.to(recipient).emit('chat message', { chatId, message });
+      socket.to(recipient).emit('chat message', { user: user.id, chatId, message });
     });
   });
 
