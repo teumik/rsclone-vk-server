@@ -291,8 +291,7 @@ io.on('connection', async (socket) => {
     await chat.save();
     chat.members.forEach((member) => {
       const recipient = sessionState.onlineUsers.get(member.toHexString());
-      if (!recipient || member.toHexString() === user.id) return;
-      socket.to(recipient).emit('chat message on', {
+      socket.to(recipient || '').emit('chat message on', {
         user: user.id, chatId, message, messageId: messageData.id,
       });
     });
