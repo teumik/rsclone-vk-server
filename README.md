@@ -83,9 +83,13 @@ Link to server: https://rsclone-vk-server-production-ff8c.up.railway.app
         credentials: 'include',
         ```
 
-    - ### ```/user/:id```
+2. ### ```/user```
+
+    - ### ```/:id```
 
         **Method**: ```GET``` *Required сookies*
+
+        **Description:** send access token from login or refresh responce's headers
 
         **Options:**
 
@@ -98,9 +102,9 @@ Link to server: https://rsclone-vk-server-production-ff8c.up.railway.app
         credentials: 'include',
         ```
 
-    - ### ```/users```
+    - ### ```/```
 
-        **Method**: ```GET```
+        **Method**: ```GET``` *Required сookies*
 
         **Description:** send access token from login or refresh responce's headers
 
