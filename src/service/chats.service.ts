@@ -62,6 +62,7 @@ class ChatsService {
       message,
     });
     const chatDocument = new Chat({
+      owner: user.id,
       members: role === 'group' ? [user.id, ...members] : [user.id, friendId],
       role,
     });
