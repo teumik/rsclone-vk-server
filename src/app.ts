@@ -136,7 +136,7 @@ interface ServerToClientEvents {
   'edit comment': (message: IComment) => void;
   'remove comment': (message: ICommentMessage) => void;
   'chat message': (data: ChatMessage) => void;
-  'add friend': (data: IFriendResponse) => void;
+  'add friend': (data: IExistRequest) => void;
   'accept friend': (data: IExistRequest) => void;
   'remove friend': (data: IExistRequest) => void;
   'visit log': (data: [string, {
