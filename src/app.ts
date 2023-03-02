@@ -288,8 +288,10 @@ io.on('connection', async (socket) => {
     });
     chat.messages.push(messageData.id);
     await chat.save();
+    io.sockets.emit('chat message', { user: user.id, chatId, message });
     chat.members.forEach((member) => {
       const recipient = sessionState.onlineUsers.get(member.toHexString());
+      console.log(member, recipient);
       if (!recipient || member.toHexString() === user.id) return;
       socket.to(recipient).emit('chat message', { user: user.id, chatId, message });
     });
