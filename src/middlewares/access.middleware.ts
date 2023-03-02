@@ -14,7 +14,6 @@ const accessMiddleware = async (req: Request, res: Response, next: NextFunction)
     const accessToken = authorization?.split(' ')[1];
 
     if (!accessToken) {
-      console.log(error('asd'));
       throw error('Access token not provided');
     }
     if (accessToken !== 'undefined') {

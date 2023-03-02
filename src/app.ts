@@ -4,9 +4,8 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import multer from 'multer';
 import { parse } from 'cookie';
-import { Document, Schema, Types } from 'mongoose';
+import { Types } from 'mongoose';
 import authRouter from './router/auth.router';
 import userRouter from './router/user.router';
 import infoRouter from './router/info.router';
@@ -25,10 +24,8 @@ import ApiError from './utils/apiError';
 import tokenService from './service/token.service';
 import User from './models/user.model';
 import { IPosts } from './service/posts.service';
-import { IUser } from './utils/authValidate';
 import Chat from './models/chat.model';
 import Message from './models/message.model';
-import Post from './models/posts.model';
 
 dotenv.config();
 const { DB_URL, PORT, WHITELIST } = env;
@@ -36,7 +33,6 @@ const accessDomainList = WHITELIST?.split(' ');
 const { greetingMessage } = settings;
 
 const app = express();
-const upload = multer();
 const server = createServer(app);
 
 app.use(express.json({ limit: '1.2mb', type: 'application/json' }));
@@ -56,10 +52,6 @@ app.use('/posts', postsRouter);
 app.use('/chats', chatsRouter);
 app.use(loggerMiddleware);
 app.use(errorMiddleware);
-
-app.post('/image_loader', upload.single('image'), async (req, res, next) => {
-  res.json(req.file);
-});
 
 interface IOnline {
   id: string;
@@ -116,11 +108,6 @@ interface IExistRequest {
   status: boolean;
   requester: Types.ObjectId;
   recipient: Types.ObjectId;
-}
-
-interface IFriendResponse {
-  user: Partial<IUser>;
-  friend: Partial<IUser>;
 }
 
 interface ServerToClientEvents {
