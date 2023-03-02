@@ -111,6 +111,13 @@ interface IExistRequest {
   recipient: Types.ObjectId;
 }
 
+interface IChat {
+  members: Types.ObjectId[];
+  messages: Types.ObjectId[];
+  role: 'private' | 'group';
+  title?: string | undefined;
+}
+
 interface ServerToClientEvents {
   online: (message: IOnline) => void;
   error: (message: ApiError) => void;
@@ -131,6 +138,7 @@ interface ServerToClientEvents {
     visitorId: string;
     socketId: string;
   }[]][]) => void;
+  'create chat': (data: IChat) => void;
 }
 
 interface ClientToServerEvents {
