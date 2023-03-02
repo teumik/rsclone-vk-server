@@ -2,7 +2,7 @@
 
 Link to repository: https://github.com/teumik/rsclone-vk-server
 
-Link to server: https://rs-clone-vk.onrender.com
+Link to server: https://rsclone-vk-server-production-ff8c.up.railway.app
 
 # RS Clone VK API
 
@@ -25,29 +25,11 @@ Link to server: https://rs-clone-vk.onrender.com
         }
         ```
 
-        **Response:**
-
-        ```ts
-        interface IUserData {
-          user: {
-            id: string | undefined;
-            email: string;
-            username: string;
-            isActivated: boolean | undefined;
-          };
-          accessToken: string;
-          refreshToken: string;
-        }
-        ```
-
         **Options:**
 
         ``` ts
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify(user),
         ```
@@ -68,235 +50,67 @@ Link to server: https://rs-clone-vk.onrender.com
         };
         ```
 
-        **Response:**
+        **Options:**
 
-        ```ts
-        interface IUserData {
-          user: {
-            id: string | undefined;
-            email: string;
-            username: string;
-            isActivated: boolean | undefined;
-          };
-          accessToken: string;
-          refreshToken: string;
-        }
+        ``` ts
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(user),
         ```
 
     - ### ```/logout```
 
-       **Method**: ```GET``` *Required auto Cookies*
+       **Method**: ```GET``` *Required сookies*
 
-        **Response:**
+        **Options:**
 
-        ```ts
-        interface ILogout {
-          status: boolean;
-          type: 'Logout';
-        }
+        ``` ts
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         ```
 
     - ### ```/refresh```
 
+        **Method**: ```GET``` *Required сookies*
 
-        **Method**: ```GET``` *Required auto Cookies*
-
-        **Response:** *Temporery*
+        **Options:**
 
         ```ts
-        interface IUserData {
-          user: {
-            id: string | undefined;
-            email: string;
-            username: string;
-            isActivated: boolean | undefined;
-          };
-          accessToken: string;
-          refreshToken: string;
-        }
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         ```
 
-    - ### ```/activate/:link```
+    - ### ```/user/:id```
 
-        **Method**: ```GET``` *Required auto Cookies*
+        **Method**: ```GET``` *Required сookies*
 
-        **Description:** get url params from activation link and redirect to ```SITE_URL/user/:id``` (*temporary ```SITE_URL/auth/user/:id```*)
-
-        ```ts
-        res.redirect(`${SITE_URL}/auth/user/${user.id}`);
-        ```
-
-    - ### ```/user```
-
-        **Method**: ```GET```
-
-        **Request:**
+        **Options:**
 
         ```ts
-        const fetchOptions: RequestInit = {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          credentials: 'include',
-        }
-        ```
-
-        **Response:**
-
-        ```ts
-        interface IUserData {
-          id: string | undefined;
-          email: string;
-          username: string;
-          isActivated: boolean | undefined;
-        }
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        credentials: 'include',
         ```
 
     - ### ```/users```
 
         **Method**: ```GET```
 
-        **Description:** send access token from previous responce's headers
+        **Description:** send access token from login or refresh responce's headers
 
-
-        **Request:**
-
-        ```ts
-        const fetchOptions: RequestInit = {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-            credentials: 'include',
-          },
-        }
-        ```
-
-        **Response:**
+        **Options:**
 
         ```ts
-        interface IUserData {
-          id: string | undefined;
-          email: string;
-          username: string;
-          isActivated: boolean | undefined;
-        }
-
-        type TUsersResponse = IUserData[];
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        credentials: 'include',
         ```
-
-## Errors
-
-```ts
-interface IApiError {
-  status: boolean;
-  code: number;
-  type: string;
-  message: string;
-  name: string;
-}
-
-type TErrorsResponse = Partial<IApiError>;
-
-error instanceof ApiError
-```
-
-1. ### ```ServerError```
-
-    ```ts
-    interface IServerError {
-      status: false,
-      code: 500,
-      type: 'Unnamed',
-      name: 'ServerError',
-      message: 'Server was crash, we does not know cause',
-    } | {
-      code: 500,
-      type: 'DBUrlError',
-      message: 'Database URL cannot be empty string',
-    } | {
-      code: 500,
-      message: 'Problems with sites whitelist',
-    }
-    ```
-
-2. ### ```LoginError```
-
-    ```ts
-    interface ILoginError {
-      status: false,
-      code: 401,
-      type: 'Unnamed',
-      name: 'LoginError',
-      message: 'Server was crash, we does not know cause',
-    } | {
-      type: 'Unauthorize',
-      message: 'Token does not exist, user unauthorized',
-    } | {
-      type: 'Unauthorized',
-      message: 'User unauthorized for logout',
-    } | {
-      type: 'Unauthorized',
-      message: 'User unauthorized',
-    } | {
-      code: 400,
-      type: 'Unconfirmed',
-      message: `User ${email || username} has not confirmed account`,
-    }
-    ```
-
-3. ### ```CorsError```
-
-    ```ts
-    interface ICorsError {
-      status: false,
-      code: 400,
-      type: 'Unnamed',
-      name: 'CorsError',
-      message: 'Server was crash, we does not know cause',
-    } | {
-      type: 'InvalidURL',
-      message: `${requestOrigin} is not allowed`,
-    }
-    ```
-
-4. ### ```ActivationError```
-
-    ```ts
-    interface IActivationError {
-      status: false,
-      code: 500,
-      type: 'Unnamed',
-      name: 'ActivationError',
-      message: 'Server was crash, we does not know cause',
-    } | {
-      code: 422,
-      type: 'BrokenLink',
-      message: 'Incorrect activation link',
-    }
-    ```
-
-4. ### ```DatabaseError```
-
-    ```ts
-    interface IDatabaseError {
-      status: false,
-      name: 'DatabaseError',
-    } | {
-      code: 500,
-      type: 'DBConectionError',
-      message: error.message,
-    } | {
-      code: 421,
-      type: 'Duplicate',
-      message: `User with '${email || username}' exist`,
-    } | {
-      code: 404,
-      type: 'NotFound',
-      message: 'User not found',
-    } | {
-      code: 404,
-      type: 'NotFound',
-      message: `User ${email || username} not found`,
-    }
-    ```
