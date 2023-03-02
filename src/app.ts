@@ -61,10 +61,6 @@ app.post('/image_loader', upload.single('image'), async (req, res, next) => {
   res.json(req.file);
 });
 
-interface IUserStatus extends IUser {
-  isOnline: boolean;
-}
-
 interface IOnline {
   id: string;
   online: boolean;
@@ -116,6 +112,17 @@ interface IVisitor {
   socketId?: string;
 }
 
+interface IExistRequest {
+  status: boolean;
+  requester: Types.ObjectId;
+  recipient: Types.ObjectId;
+}
+
+interface IFriendResponse {
+  user: Partial<IUser>;
+  friend: Partial<IUser>;
+}
+
 interface ServerToClientEvents {
   online: (message: IOnline) => void;
   error: (message: ApiError) => void;
@@ -129,6 +136,9 @@ interface ServerToClientEvents {
   'edit comment': (message: IComment) => void;
   'remove comment': (message: ICommentMessage) => void;
   'chat message': (data: ChatMessage) => void;
+  'add friend': (data: IFriendResponse) => void;
+  'accept friend': (data: IExistRequest) => void;
+  'remove friend': (data: IExistRequest) => void;
   'visit log': (data: [string, {
     visitorId: string;
     socketId: string;
