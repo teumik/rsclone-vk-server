@@ -4,6 +4,7 @@ import tokenService from './token.service';
 import User from '../models/user.model';
 import Chat from '../models/chat.model';
 import Message from '../models/message.model';
+import { io, sessionState } from '../app';
 
 dotenv.config();
 
@@ -98,6 +99,11 @@ class ChatsService {
         },
       },
     });
+    io.sockets.emit('create chat', chatDocument);
+    // const friendObserver = sessionState.onlineUsers.get(friendId);
+    // if (friendObserver) {
+    //   io.sockets.to(friendObserver).emit('create chat', chatDocument);
+    // }
     return chatDocument;
   };
 
