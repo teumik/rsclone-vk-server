@@ -39,7 +39,7 @@ class AuthController {
         email, username, password, firstName, lastName,
       });
       const { accessToken, userData: user } = userData;
-      const refreshOptions = this.getRefreshOptions(1000 * 60 * 60 * 24);
+      const refreshOptions = this.getRefreshOptions(1000 * 60 * 60 * 48);
       res.status(201)
         .cookie('refreshToken', userData.refreshToken, refreshOptions)
         .set(this.getTokensHeader(userData.accessToken))
