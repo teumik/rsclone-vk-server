@@ -40,7 +40,6 @@ app.use(express.urlencoded({ limit: '1.2mb', extended: true }));
 app.use(cookieParser());
 app.use(corsMiddleware);
 app.get('/', (req, res) => res.send(greetingMessage));
-app.get('/clear', async (req, res, next) => { await databaseController.dropAllCollections(req, res, next); });
 app.use('/auth', authRouter);
 app.use(accessMiddleware);
 app.use(activateMiddleware);
