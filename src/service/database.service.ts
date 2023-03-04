@@ -1,8 +1,7 @@
 import mongoose from 'mongoose';
-import { NextFunction, Request, Response } from 'express';
 import ApiError from '../utils/apiError';
 
-class DatabaseController {
+class DatabaseService {
   connectDatabase = async (DB_URL: string | undefined) => {
     if (!DB_URL) {
       throw ApiError.serverError({
@@ -25,6 +24,6 @@ class DatabaseController {
   };
 }
 
-const databaseController = new DatabaseController();
+const databaseService = new DatabaseService();
 
-export default databaseController;
+export default databaseService;

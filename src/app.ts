@@ -16,7 +16,7 @@ import errorMiddleware from './middlewares/error.middleware';
 import loggerMiddleware from './middlewares/logger.middleware';
 import corsMiddleware from './middlewares/cors.middleware';
 import settings from './utils/settings';
-import databaseController from './database/connectToDatabase';
+import databaseService from './service/database.service';
 import accessMiddleware from './middlewares/access.middleware';
 import activateMiddleware from './middlewares/activate.middleware';
 import chatsRouter from './router/chats.router';
@@ -243,7 +243,6 @@ io.on('connection', async (socket) => {
       await user.save();
     }
     sessionState.onlineUsers.set(user.id, socket.id);
-    console.log(user.id, socket.id, 'socket ID');
     io.sockets.emit('online', { id: user.id, online: user.isOnline });
   });
 
@@ -311,6 +310,6 @@ io.on('connection', async (socket) => {
   });
 });
 
-server.listen(PORT || 5555, async () => { await databaseController.connectDatabase(DB_URL); });
+server.listen(PORT || 5555, async () => { await databaseService.connectDatabase(DB_URL); });
 
 export { sessionState, io };
