@@ -83,6 +83,12 @@ Link to server: https://rsclone-vk-server-production-ff8c.up.railway.app
         credentials: 'include',
         ```
 
+    - ### ```/activate/:link```
+
+        **Method**: ```GET```
+
+        **Parameters:** auto generate string for account activation
+
 2. ### ```/user```
 
     - ### ```/:id```
@@ -90,6 +96,8 @@ Link to server: https://rsclone-vk-server-production-ff8c.up.railway.app
         **Method**: ```GET``` *Required сookies*
 
         **Description:** send access token from login or refresh responce's headers
+
+        **Parameters:** user's id
 
         **Options:**
 
@@ -107,6 +115,138 @@ Link to server: https://rsclone-vk-server-production-ff8c.up.railway.app
         **Method**: ```GET``` *Required сookies*
 
         **Description:** send access token from login or refresh responce's headers
+
+        **Options:**
+
+        ```ts
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        credentials: 'include',
+        ```
+
+    - ### ```/friends```
+
+        **Method**: ```GET``` *Required сookies*
+
+        **Description:** get all accepted friends
+
+        **Options:**
+
+        ```ts
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        credentials: 'include',
+        ```
+
+    - ### ```/friends```
+
+        **Method**: ```POST``` *Required сookies*
+
+        **Description:** add friend
+
+        **Body:**
+
+        ```ts
+        type IUser = {
+          username: string;
+        } | {
+          friendId: string;
+        }
+        ```
+
+        **Options:**
+
+        ```ts
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        credentials: 'include',
+        ```
+
+    - ### ```/friends```
+
+        **Method**: ```PUT``` *Required сookies*
+
+        **Description:** accept friend
+
+        **Body:**
+
+        ```ts
+        type IUser = {
+          username: string;
+        } | {
+          friendId: string;
+        }
+        ```
+
+        **Options:**
+
+        ```ts
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        credentials: 'include',
+        ```
+
+    - ### ```/friends```
+
+        **Method**: ```DELETE``` *Required сookies*
+
+        **Description:** remove user from friends
+
+        **Body:**
+
+        ```ts
+        type IUser = {
+          username: string;
+        } | {
+          friendId: string;
+        }
+        ```
+
+        **Options:**
+
+        ```ts
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        credentials: 'include',
+        ```
+
+    - ### ```/friends/incomming```
+
+        **Method**: ```GET``` *Required сookies*
+
+        **Description:** get incoming friend requests
+
+        **Options:**
+
+        ```ts
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        credentials: 'include',
+        ```
+
+    - ### ```/friends/outcomming```
+
+        **Method**: ```GET``` *Required сookies*
+
+        **Description:** get incoming friend requests
 
         **Options:**
 
