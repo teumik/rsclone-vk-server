@@ -8,10 +8,47 @@
 
 # RS Clone VK API
 
+## Stack
+
+  1. ```Node.js```
+  2. ```Express```
+  3. ```TypeScript```
+  4. ```JSON Web Tokens``` (```jsonwebtoken```)
+  5. ```MongoDB``` (```Mongoose```)
+  6. ```Socket.IO```
+  7. ```dotenv```
+
+## Description
+
+Сервер был разработан на `Node.js` с использованием `TypeScript`, `Express` и размещен на платформе `railway.app`
+
+Основным архитектурным паттерном был выбран `MVC`, для обеспечения абстракций и разделения слоев приложения
+
+Была реализована аутентификация и авторизация на основе `JWT` с верификацией предоставленных токенов на срок жизни и валидность, также возможность обновления токенов по истечению токена доступа
+
+Токены хешируются с помощью пары секретных ключей, токен обновления передается через Cookie, доступ к нему имеет только со стороны сервера, посредством чего происходит верификация пользователя и доступ к данным
+
+Все данные хранятся в базе данных `MongoDB`, для взаимодействия используется ORM `Mongoose`
+
+Сервер реализует `CRUD` для операций с базой данных, при этом сервер не хранит никаких данных, все взаимодействие с ресурсом происходит посредством запросов, где сервер управляет и контролирует процесс операций над базой данных
+
+Для оповещения о событиях операций других пользователей: добавление и удаление друзей, создание постов, лайков, комментариев и оповещения о сообщениях и чатах ; применяется `Socket.IO` на основе `WebSocket`
+
+Для хранения чувствительной информации, отвечающей за корректную работу сервисов, используется переменные окружения через `dotenv`
+
+Данные о запросах отражают корректную информацию и уместную информацию для использования на стороне клиента
+
+Ошибки читабельны и информативны, применяется кастомный класс ошибок с подробным описанием каждой проблемы, которым можно легко оперировать на стороне клиента
+
 ## Example Routes
 
 1. ### ```/auth```
-    - ### ```/registration```
+
+    - ### Registration
+
+        <details>
+
+        ### ```/registration```
 
         **Method**: ```POST```
 
@@ -29,14 +66,20 @@
 
         **Options:**
 
-        ``` ts
+        ```ts
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify(user),
         ```
 
-    - ### ```/login```
+        </details>
+
+    - ### Login
+
+        <details>
+
+        ### ```/login```
 
         **Method**: ```POST```
 
@@ -61,9 +104,15 @@
         body: JSON.stringify(user),
         ```
 
-    - ### ```/logout```
+        </details>
 
-       **Method**: ```GET``` *Required сookies*
+    - ### Logout
+
+        <details>
+
+        ### ```/logout```
+
+        **Method**: ```GET``` *Required сookies*
 
         **Options:**
 
@@ -73,7 +122,13 @@
         credentials: 'include',
         ```
 
-    - ### ```/refresh```
+        </details>
+
+    - ### Refresh
+
+        <details>
+
+        ### ```/refresh```
 
         **Method**: ```GET``` *Required сookies*
 
@@ -85,15 +140,27 @@
         credentials: 'include',
         ```
 
-    - ### ```/activate/:link```
+        </details>
+
+    - ### Activation
+
+        <details>
+
+        ### ```/activate/:link```
 
         **Method**: ```GET```
 
         **Parameters:** auto generate string for account activation
 
+        </details>
+
 2. ### ```/user```
 
-    - ### ```/:id```
+    - ### Get user by ID
+
+        <details>
+
+        ### ```/:id```
 
         **Method**: ```GET``` *Required сookies*
 
@@ -112,7 +179,13 @@
         credentials: 'include',
         ```
 
-    - ### ```/```
+        </details>
+
+    - ### Get all users
+
+        <details>
+
+        ### ```/```
 
         **Method**: ```GET``` *Required сookies*
 
@@ -129,134 +202,172 @@
         credentials: 'include',
         ```
 
-    - ### ```/friends```
+        </details>
 
-        **Method**: ```GET``` *Required сookies*
+    - ### Get list of friends
 
-        **Description:** get all accepted friends
+      <details>
 
-        **Options:**
+      ### ```/friends```
 
-        ```ts
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`
+      **Method**: ```GET``` *Required сookies*
+
+      **Description:** get all accepted friends
+
+      **Options:**
+
+      ```ts
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`
+      },
+      credentials: 'include',
+      ```
+
+      </details>
+
+    - ### Add friend
+
+      <details>
+
+      ### ```/friends```
+
+      **Method**: ```POST``` *Required сookies*
+
+      **Description:** add friend
+
+      **Body:**
+
+      ```ts
+      type IUser = {
+        username: string;
+      } | {
+        friendId: string;
+      }
+      ```
+
+      **Options:**
+
+      ```ts
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`
+      },
+      credentials: 'include',
+      ```
+
+      </details>
+
+    - ### Accept friend
+
+      <details>
+
+      ### ```/friends```
+
+      **Method**: ```PUT``` *Required сookies*
+
+      **Description:** accept friend
+
+      **Body:**
+
+      ```ts
+      type IUser = {
+        username: string;
+      } | {
+        friendId: string;
+      }
+      ```
+
+      **Options:**
+
+      ```ts
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`
+      },
+      credentials: 'include',
+      ```
+
+      </details>
+
+    - ### Remove friend
+
+      <details>
+
+      ### ```/friends```
+
+      **Method**: ```DELETE``` *Required сookies*
+
+      **Description:** remove user from friends
+
+      **Body:**
+
+      ```ts
+      type IUser = {
+        username: string;
+      } | {
+        friendId: string;
+      }
+      ```
+
+      **Options:**
+
+      ```ts
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`
+      },
+      credentials: 'include',
+      ```
+
+      </details>
+
+    - ### Incoming friend requests
+
+      <details>
+
+      ### ```/friends/incomming```
+
+      **Method**: ```GET``` *Required сookies*
+
+      **Description:** get incoming friend requests
+
+      **Options:**
+
+      ```ts
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`
+      },
+      credentials: 'include',
+      ```
+
+      </details>
+
+    - ### Outcoming friend requests
+
+      <details>
+
+      ### ```/friends/outcomming```
+
+      **Method**: ```GET``` *Required сookies*
+
+      **Description:** get incoming friend requests
+
+      **Options:**
+
+      ```ts
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`
         },
-        credentials: 'include',
-        ```
+      credentials: 'include',
+      ```
 
-    - ### ```/friends```
-
-        **Method**: ```POST``` *Required сookies*
-
-        **Description:** add friend
-
-        **Body:**
-
-        ```ts
-        type IUser = {
-          username: string;
-        } | {
-          friendId: string;
-        }
-        ```
-
-        **Options:**
-
-        ```ts
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`
-        },
-        credentials: 'include',
-        ```
-
-    - ### ```/friends```
-
-        **Method**: ```PUT``` *Required сookies*
-
-        **Description:** accept friend
-
-        **Body:**
-
-        ```ts
-        type IUser = {
-          username: string;
-        } | {
-          friendId: string;
-        }
-        ```
-
-        **Options:**
-
-        ```ts
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`
-        },
-        credentials: 'include',
-        ```
-
-    - ### ```/friends```
-
-        **Method**: ```DELETE``` *Required сookies*
-
-        **Description:** remove user from friends
-
-        **Body:**
-
-        ```ts
-        type IUser = {
-          username: string;
-        } | {
-          friendId: string;
-        }
-        ```
-
-        **Options:**
-
-        ```ts
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`
-        },
-        credentials: 'include',
-        ```
-
-    - ### ```/friends/incomming```
-
-        **Method**: ```GET``` *Required сookies*
-
-        **Description:** get incoming friend requests
-
-        **Options:**
-
-        ```ts
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`
-        },
-        credentials: 'include',
-        ```
-
-    - ### ```/friends/outcomming```
-
-        **Method**: ```GET``` *Required сookies*
-
-        **Description:** get incoming friend requests
-
-        **Options:**
-
-        ```ts
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`
-        },
-        credentials: 'include',
-        ```
+      </details>
