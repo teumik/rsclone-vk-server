@@ -4,7 +4,7 @@
 
 [Link to server](https://rsclone-vk-server-production-ff8c.up.railway.app)
 
-[Link to description]()
+[Link to description](https://github.com/teumik/rsclone-vk-server/blob/main/DESCRIPTION.md)
 
 # RS Clone VK API
 
