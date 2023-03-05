@@ -8,7 +8,7 @@
 
 # RS Clone VK API
 
-## Routes
+## Example Routes
 
 1. ### ```/auth```
     - ### ```/registration```
