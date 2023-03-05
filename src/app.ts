@@ -235,6 +235,13 @@ class SessionState {
 const sessionState = new SessionState();
 
 io.on('connection', async (socket) => {
+  const { cookie: cookieInit } = socket.handshake.headers;
+  const { refreshToken: refreshTokenInit } = parse(cookieInit || '');
+  const userInit = await findRefreshToken(refreshTokenInit);
+  if (!userInit) return;
+  sessionState.onlineUsers.set(userInit.id, socket.id);
+  io.sockets.emit('online', { id: userInit.id, online: userInit.isOnline });
+
   socket.on('login', async (accessToken) => {
     const user = await findAccessToken(accessToken);
     if (!user) return;
@@ -269,7 +276,7 @@ io.on('connection', async (socket) => {
       user.isOnline = false;
       await user.save();
     }
-    sessionState.onlineUsers.delete(user.id);
+    // sessionState.onlineUsers.delete(user.id);
     sessionState.removeByVisitor(user.id);
     io.sockets.emit('online', { id: user.id, online: user.isOnline });
   });
